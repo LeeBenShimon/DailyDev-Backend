@@ -37,7 +37,7 @@ const router = express.Router();
 *       500:
 *         description: Internal server error
 */
-router.get("/", postsController.getAll.bind(postsController));
+router.get("/", authMiddleware, postsController.getAll.bind(postsController));
 /**
 * @swagger
 * /posts/{id}:
@@ -73,7 +73,7 @@ router.get("/", postsController.getAll.bind(postsController));
 *       500:
 *         description: Internal server error
 */
-router.get("/:id", postsController.getById.bind(postsController));
+router.get("/:id", authMiddleware, postsController.getById.bind(postsController));
 
 /**
 * @swagger

@@ -16,6 +16,8 @@ import { authMiddleware } from '../controllers/auth_controller';
 *     summary: Get all comments
 *     description: Retrieve all comments
 *     tags: [Comments]
+*     security:
+*       - bearerAuth: []
 *     responses:
 *       200:
 *         description: Comments retrieved successfully
@@ -37,7 +39,7 @@ import { authMiddleware } from '../controllers/auth_controller';
 *       500:
 *         description: Internal server error
 */
-router.get("/", commentsController.getAll.bind(commentsController));
+router.get("/", authMiddleware, commentsController.getAll.bind(commentsController));
 /**
 * @swagger
 * /comments/{id}:
@@ -45,6 +47,8 @@ router.get("/", commentsController.getAll.bind(commentsController));
 *     summary: Get a comment by ID
 *     description: Retrieve a comment by its ID
 *     tags: [Comments]
+*     security:
+*       - bearerAuth: []
 *     parameters:
 *       - in: path
 *         name: id
@@ -73,7 +77,7 @@ router.get("/", commentsController.getAll.bind(commentsController));
 *       500:
 *         description: Internal server error
 */
-router.get("/:id", commentsController.getById.bind(commentsController));
+router.get("/:id", authMiddleware, commentsController.getById.bind(commentsController));
 /**
 * @swagger
 * /comments:
