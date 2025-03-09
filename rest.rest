@@ -1,0 +1,106 @@
+### Create a post
+
+POST http://localhost:3000/posts
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2M2MTQyN2VlMmUwMjNkNjk1ZTQyZGIiLCJyYW5kb20iOjI4NzAwNywiaWF0IjoxNzQxMDM0NTQ5LCJleHAiOjE3NDEwMzgxNDl9.DerzgBmOXTLuo2UAfK7GEAllckkoIAFQGAWOfnaJRwk
+
+{
+    "owner": "Lee",
+    "title": "My first post",
+    "content": "This is my first post!"
+}
+
+### Get all posts
+
+GET http://localhost:3000/posts
+
+### Get a post by ID
+
+GET http://localhost:3000/posts/67c61486ee2e023d695e42df
+
+### Get posts by owner
+
+GET http://localhost:3000/posts?owner=Lee
+
+### Update a post
+PUT http://localhost:3000/posts/67c618b191a57cd670f99bf9 
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2M2MTQyN2VlMmUwMjNkNjk1ZTQyZGIiLCJyYW5kb20iOjI4NzAwNywiaWF0IjoxNzQxMDM0NTQ5LCJleHAiOjE3NDEwMzgxNDl9.DerzgBmOXTLuo2UAfK7GEAllckkoIAFQGAWOfnaJRwk
+
+{
+"owner": "Lee", 
+"title": "updated Post", 
+"content": "Updated"
+}
+
+### Delete a post
+
+DELETE http://localhost:3000/posts/67c61486ee2e023d695e42df
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2M2MTQyN2VlMmUwMjNkNjk1ZTQyZGIiLCJyYW5kb20iOjI4NzAwNywiaWF0IjoxNzQxMDM0NTQ5LCJleHAiOjE3NDEwMzgxNDl9.DerzgBmOXTLuo2UAfK7GEAllckkoIAFQGAWOfnaJRwk
+
+### Create a Comment
+
+POST http://localhost:3000/comments
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2M2MTQyN2VlMmUwMjNkNjk1ZTQyZGIiLCJyYW5kb20iOjI4NzAwNywiaWF0IjoxNzQxMDM0NTQ5LCJleHAiOjE3NDEwMzgxNDl9.DerzgBmOXTLuo2UAfK7GEAllckkoIAFQGAWOfnaJRwk
+
+{
+  "postId": "67c618b191a57cd670f99bf9", 
+  "comment": "This is a test comment",
+  "owner": "Test"
+}
+
+### Get Comments
+
+GET  http://localhost:3000/comments
+
+### Get Comments ById
+
+GET  http://localhost:3000/comments/6757196fe022c25f3ab887fa
+
+### Get Comments ByPostId
+
+GET  http://localhost:3000/comments?postId=6757196fe022c25f3ab887fa
+
+### delete Comments ById 
+DELETE http://localhost:3000/comments/675724891d5da2ddb4eabd51
+
+### update Comments ById 
+PUT http://localhost:3000/comments/67c62090b2ac8aadbcd7087e 
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2M2MTQyN2VlMmUwMjNkNjk1ZTQyZGIiLCJyYW5kb20iOjI4NzAwNywiaWF0IjoxNzQxMDM0NTQ5LCJleHAiOjE3NDEwMzgxNDl9.DerzgBmOXTLuo2UAfK7GEAllckkoIAFQGAWOfnaJRwk
+
+{
+  "postId": "67901e72e3894a388e18b599",
+  "comment": "Updated Comment",
+  "owner": "Test"
+}
+
+### Refresh Token
+POST http://localhost:3000/auth/refresh
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2M2MTQyN2VlMmUwMjNkNjk1ZTQyZGIiLCJyYW5kb20iOjI4NzAwNywiaWF0IjoxNzQxMDM0NTQ5LCJleHAiOjE3NDE2MzkzNDl9.vdi_oC-Z2M2jNRM-gKD6puVTvHq-FvCb0PZMlGokvO0
+
+### Logout
+POST http://localhost:3000/auth/logout
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2M2MTQyN2VlMmUwMjNkNjk1ZTQyZGIiLCJyYW5kb20iOjI4NzAwNywiaWF0IjoxNzQxMDM0NTQ5LCJleHAiOjE3NDE2MzkzNDl9.vdi_oC-Z2M2jNRM-gKD6puVTvHq-FvCb0PZMlGokvO0
+
+### Register a new user
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+    "email": "lee555@example.com",
+    "password": "lee123456"
+}
+
+### Login
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+    "email": "lee555@example.com",
+    "password": "lee123456"
+}
