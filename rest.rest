@@ -1,6 +1,8 @@
 @baseUrl = http://localhost:3000
-@email = test@example.com
+@email = tutt@example.com
 @password = test123456
+@username = testuser
+@googleCredential = YOUR_GOOGLE_ID_TOKEN
 
 ### Login to get tokens
 # @name login
@@ -122,7 +124,8 @@ Content-Type: application/json
 
 {
     "email": "{{email}}",
-    "password": "{{password}}"
+    "password": "{{password}}",
+    "username": "{{username}}"
 }
 
 ### Test Authentication Flow ###
@@ -133,7 +136,8 @@ Content-Type: application/json
 
 {
     "email": "{{email}}",
-    "password": "{{password}}"
+    "password": "{{password}}",
+    "username": "{{username}}"
 }
 
 ### 2. Login with the registered user
@@ -221,3 +225,27 @@ Authorization: Bearer {{finalAccessToken}}
 POST {{baseUrl}}/auth/refresh
 Content-Type: application/json
 Authorization: Bearer {{finalRefreshToken}}
+
+### Google Sign-In
+# @name googleSignIn
+POST {{baseUrl}}/auth/googleSignIn
+Content-Type: application/json
+
+{
+    "credential": "{{googleCredential}}"
+}
+
+###
+@googleAccessToken = {{googleSignIn.response.body.accessToken}}
+@googleRefreshToken = {{googleSignIn.response.body.refreshToken}}
+
+### Use the access token from Google Sign-In to create a post
+POST {{baseUrl}}/posts
+Content-Type: application/json
+Authorization: Bearer {{googleAccessToken}}
+
+{
+    "owner": "GoogleUser",
+    "title": "Google Sign-In Post",
+    "content": "This post was created using Google Sign-In!"
+}

@@ -2,6 +2,7 @@ import express from 'express';
 import authController from '../controllers/auth_controller';
 import { authMiddleware } from '../controllers/auth_controller';
 
+
 const router = express.Router();
 
 /**
@@ -63,6 +64,7 @@ const router = express.Router();
 *               $ref: '#/components/schemas/User'
 */
 router.post("/register", authController.register);
+router.post('/googleSignIn', authController.googleSignIn);
 
 /**
 * @swagger
@@ -162,5 +164,7 @@ router.post("/logout", authMiddleware, authController.logout);
 *         description: Internal server error
 */
 router.post("/refresh", authController.refresh);
+
+
 
 export default router;
