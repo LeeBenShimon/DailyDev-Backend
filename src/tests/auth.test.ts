@@ -5,10 +5,11 @@ import userModel from "../models/user_model";
 import { Express } from 'express';
 import postsModel from '../models/posts_model';
 
+
 let app:Express;
 
 beforeAll(async () => {
-    app = await initApp();
+    app = await initApp(); // Pass the instance to initApp
     console.log('beforeAll');
     await userModel.deleteMany();
     await postsModel.deleteMany();
@@ -22,18 +23,21 @@ afterAll(async () => {
 type UserInfo = {
     email: string,
     password: string,
+    username: string,
     accessToken?: string,
     refreshToken?: string,
     _id?: string
 };
 const userInfo: UserInfo = {
     email: "leebenshimon14@gmail.com",
-    password: "123456"
+    password: "123456",
+    username: "leebenshimon"
 }
 
 const invalidUserInfo: UserInfo = {
     email: "leebenshimon14@gmail.com",
-    password: ""
+    password: "",
+    username: "leebenshimon"
 }
 
 describe("Auth Tests", () => {
@@ -217,8 +221,8 @@ describe("Auth Tests", () => {
 
     test("Logout - missing refreshToken", async () => {
         const response = await request(app).post("/auth/logout");
-        expect(response.statusCode).toBe(400);
-        expect(response.text).toContain("missing token");
+        expect(response.statusCode).toBe(401);
+        expect(response.text).toContain("Missing token");
     });
     test("Refresh token multiple useage", async () => {
         // login - get a refresh token
@@ -309,12 +313,5 @@ jest.setTimeout(10000);
     });
     
 
-    
-    
 
-    
-    
-
-
-
-});   
+});

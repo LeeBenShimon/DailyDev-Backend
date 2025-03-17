@@ -14,7 +14,7 @@ const app = express();
 app.use(express.static('public'));
 
 // Initialize the app with additional configurations
-initApp(app).then(() => {
+initApp().then((app) => {
     app.listen(port, () => {
       console.log(`Example app listening at http://localhost:${port}`);
     });

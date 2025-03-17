@@ -6,6 +6,7 @@ export interface IUser {
     password: string;
     username: string;
     // imgUrl?: string; // Add imgUrl to the interface
+    // bio?: string; // Add bio to the interface
     refreshTokens: string[];
 }
 
@@ -24,7 +25,10 @@ const userSchema = new Schema<IUser>({
         required: true,
         unique: true,
     },
-    // imgUrl: { // Add imgUrl to the schema
+    // imgUrl: {
+    //     type: String,
+    // },
+    // bio: {
     //     type: String,
     // },
     refreshTokens: [{

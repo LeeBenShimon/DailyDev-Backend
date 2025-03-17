@@ -82,12 +82,41 @@ const googleSignIn: RequestHandler = async (req, res) => {
     }
 };
 
+const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+};
+
+const isValidUsername = (username: string): boolean => {
+    return username.length >= 2 && username.length <= 50;
+};
+
+const isValidPassword = (password: string): boolean => {
+    return password.length >= 6;
+};
+
 const register: RequestHandler = async (req, res) => {
     const { email, password, username } = req.body; // Include username
     if (!email || !password || !username) { // Check for username
         res.status(400).send("Missing email, password, or username");
         return;
     }
+
+    if (!isValidEmail(email)) {
+        res.status(400).send("Invalid email format");
+        return;
+    }
+
+    if (!isValidUsername(username)) {
+        res.status(400).send("Username must be between 2 and 50 characters");
+        return;
+    }
+
+    if (!isValidPassword(password)) {
+        res.status(400).send("Password must be at least 6 characters");
+        return;
+    }
+
     try {
         const existingUser = await userModel.findOne({ email });
         if (existingUser) {
@@ -122,10 +151,22 @@ const register: RequestHandler = async (req, res) => {
 
 const login: RequestHandler = async (req, res) => {
     const { email, password } = req.body;
+
     if (!email || !password) {
         res.status(400).send("Missing email or password");
         return;
     }
+
+    if (!isValidEmail(email)) {
+        res.status(400).send("Invalid email format");
+        return;
+    }
+
+    if (!isValidPassword(password)) {
+        res.status(400).send("Password must be at least 6 characters");
+        return;
+    }
+
     try {
         const user = await userModel.findOne({ email });
         if (!user) {
