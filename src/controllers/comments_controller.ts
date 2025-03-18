@@ -4,12 +4,10 @@ import createController from "./base_controller";
 import postsModel from "../models/posts_model";
 import mongoose from "mongoose";
 
-// ✅ Create base controller instance
+
 const commentsController = createController<iComment>(commentsModel);
 
-/**
- * ✅ Override `create()` to add custom validation
- */
+
 commentsController.create = async (req: Request, res: Response): Promise<void> => {
     try {
         const { postId, comment } = req.body;
@@ -25,7 +23,7 @@ commentsController.create = async (req: Request, res: Response): Promise<void> =
             return;
         }
 
-        // ✅ Validate if the post exists
+        
         const postExists = await postsModel.findById(postId);
         if (!postExists) {
             res.status(404).json({ message: "Post not found" });

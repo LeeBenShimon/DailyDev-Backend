@@ -2,18 +2,18 @@
 // noa-aharon-207131400
 
 import dotenv from 'dotenv';
-dotenv.config(); // Load environment variables
+dotenv.config(); 
 
 import express from 'express';
 import initApp from "./server";
 
-const port = process.env.PORT || 3000; // ברירת מחדל אם אין PORT מוגדר
+const port = process.env.PORT || 3000; 
 const app = express();
 
-// Serve static files from the "public" directory
+
 app.use(express.static('public'));
 
-// Initialize the app with additional configurations
+
 initApp().then((app) => {
     app.listen(port, () => {
         console.log(`🚀 Server running at http://localhost:${port}`);

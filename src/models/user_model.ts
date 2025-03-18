@@ -9,7 +9,7 @@ export interface IUser {
   bio?: string;
   _id?: string;
   refreshTokens: string[];
-  posts: mongoose.Schema.Types.ObjectId[]; // ✅ Array of post references
+  posts: mongoose.Schema.Types.ObjectId[]; 
 }
 
 const userSchema = new Schema<IUser>({
@@ -38,7 +38,7 @@ const userSchema = new Schema<IUser>({
     }],
     posts: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Posts", // ✅ Reference to the Posts model
+        ref: "Posts", 
     }]
 });
 

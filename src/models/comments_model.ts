@@ -2,8 +2,8 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface iComment extends Document {
     comment: string;
-    owner: mongoose.Schema.Types.ObjectId; // ✅ Reference to the User model
-    postId: mongoose.Schema.Types.ObjectId; // ✅ Reference to the Post model
+    owner: mongoose.Schema.Types.ObjectId; 
+    postId: mongoose.Schema.Types.ObjectId; 
 }
 
 const commentSchema = new Schema<iComment>({
@@ -13,12 +13,12 @@ const commentSchema = new Schema<iComment>({
     },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Users", // ✅ Reference to Users collection
+        ref: "Users", 
         required: true
     },
     postId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Posts", // ✅ Reference to Posts collection
+        ref: "Posts", 
         required: true
     }
 });

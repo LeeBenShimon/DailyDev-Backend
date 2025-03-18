@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IPost extends Document {
     title: string;
     content: string;
-    owner: mongoose.Schema.Types.ObjectId; // ✅ Reference to the User
+    owner: mongoose.Schema.Types.ObjectId; 
 }
 
 const postSchema = new Schema<IPost>({
@@ -17,7 +17,7 @@ const postSchema = new Schema<IPost>({
     },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Users", // ✅ Reference to the Users model
+        ref: "Users", 
         required: true
     }
 });

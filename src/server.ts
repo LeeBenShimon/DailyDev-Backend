@@ -15,7 +15,7 @@ dotenv.config();
 
 const app = express();
 
-// 🔹 Swagger Configuration
+// Swagger Configuration
 const options = {
     definition: {
         openapi: "3.0.0",
@@ -24,22 +24,22 @@ const options = {
             version: "1.0.0",
             description: "REST server including authentication using JWT",
         },
-        servers: [{ url: `http://localhost:${process.env.PORT || 3000}` }], // גמישות לפי ה-port
+        servers: [{ url: `http://localhost:${process.env.PORT || 3000}` }], 
     },
     apis: ["./src/routes/*.ts"],
 };
 const specs = swaggerJsDoc(options);
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
 
-// 🔹 Initialize the application
+//  Initialize the application
 async function initApp(): Promise<Express> {
     if (!process.env.DB_CONNECT) {
-        throw new Error("❌ DB_CONNECT is not set");
+        throw new Error(" DB_CONNECT is not set");
     }
 
     try {
         await mongoose.connect(process.env.DB_CONNECT);
-        console.log("✅ Connected to MongoDB");
+        console.log(" Connected to MongoDB");
 
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
@@ -59,7 +59,7 @@ async function initApp(): Promise<Express> {
 
         return app;
     } catch (error) {
-        console.error("❌ MongoDB Connection Error:", error);
+        console.error(" MongoDB Connection Error:", error);
         throw error;
     }
 }

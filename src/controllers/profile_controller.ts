@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import userModel from "../models/user_model";
 
-// Get User Profile
+
 const getUserProfile = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.query.userId;
         const user = await userModel.findById(userId)
-            .select("-password -refreshTokens") // ✅ Don't return sensitive data
-            .populate("posts"); // ✅ Populate posts
+            .select("-password -refreshTokens") //  Don't return sensitive data
+            .populate("posts"); //  Populate posts
 
         if (!user) {
             res.status(404).json({ message: "User not found" });
@@ -21,7 +21,7 @@ const getUserProfile = async (req: Request, res: Response): Promise<void> => {
 };
   
 
-// Update User Profile
+
 const updateUserProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.query.userId;
@@ -45,5 +45,5 @@ const updateUserProfile = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-// ✅ Export the functions properly
+
 export { getUserProfile, updateUserProfile };

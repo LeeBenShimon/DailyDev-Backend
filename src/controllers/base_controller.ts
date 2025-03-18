@@ -106,7 +106,7 @@ class BaseController<T extends Document> {
 
             await this.model.findByIdAndDelete(id);
 
-            // ✅ If deleting a post, delete associated comments
+            
             if (this.model.modelName === "Posts") {
                 import("../models/comments_model").then(({ default: commentsModel }) => {
                     commentsModel.deleteMany({ postId: id }).catch(console.error);
@@ -121,9 +121,7 @@ class BaseController<T extends Document> {
     }
 }
 
-/**
- * Factory function to create a new controller instance
- */
+
 const createController = <T extends Document>(model: Model<T>) => {
     return new BaseController(model);
 };

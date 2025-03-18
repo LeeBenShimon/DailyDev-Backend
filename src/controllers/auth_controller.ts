@@ -35,18 +35,18 @@ const generateTokens = (_id: string): { accessToken: string, refreshToken: strin
     return { accessToken, refreshToken };
 };
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID); // Use the CLIENT_ID from environment variables
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID); 
 
 const googleSignIn: RequestHandler = async (req, res) => {
     try {
         const ticket = await client.verifyIdToken({
-            idToken: req.body.credential, // Ensure the client sends the ID token as 'credential'
-            audience: process.env.GOOGLE_CLIENT_ID, // Use the CLIENT_ID from environment variables
+            idToken: req.body.credential, 
+            audience: process.env.GOOGLE_CLIENT_ID, 
         });
         const payload = ticket.getPayload();
         const email = payload?.email;
-        const username = payload?.name; // Use the name as the username
-        // const imgUrl = payload?.picture; // Get the profile picture URL
+        const username = payload?.name; 
+        // const imgUrl = payload?.picture;
 
         if (email != null) {
             let user = await userModel.findOne({ email });
@@ -54,8 +54,8 @@ const googleSignIn: RequestHandler = async (req, res) => {
                 user = await userModel.create({
                     email,
                     password: '',
-                    username, // Include username
-                    // imgUrl, // Include imgUrl
+                    username, 
+                    // imgUrl, 
                     refreshTokens: []
                 });
             }
