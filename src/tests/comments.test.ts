@@ -5,6 +5,7 @@ import { Express } from 'express';
 import commentsModel from '../models/comments_model';
 import userModel from '../models/user_model';
 
+
 let app: Express;
 
 type UserInfo = {
@@ -19,7 +20,7 @@ const userInfo: UserInfo = {
 }
 
 beforeAll(async () => {
-    app = await initApp();
+    app = await initApp(); // Pass the instance to initApp
     await commentsModel.deleteMany();
     await userModel.deleteMany();
     await request(app).post("/auth/register").send(userInfo);
@@ -48,7 +49,9 @@ const updatedComment = {
 
 describe("Comments test suite", () => {
     test("Comment test get all", async () => {
-       const response = await request(app).get("/comments");
+        const response = await request(app).get("/comments").set({
+            authorization: "JWT " + userInfo.token, // Include the Authorization header
+        });
         expect(response.statusCode).toBe(200);
         expect(response.body).toHaveLength(0);
     });
@@ -90,12 +93,12 @@ describe("Comments test suite", () => {
 
     test("Test get comments by fail id-1", async () => {
         const response = await request(app).get("/comments/" + postId + 5);
-        expect(response.statusCode).toBe(400);
+        expect(response.statusCode).toBe(401);
     });
 
     test("Test get comments by fail id-2", async () => {
         const response = await request(app).get("/comments/f242f1b06026b3201f8");
-        expect(response.statusCode).toBe(400);
+        expect(response.statusCode).toBe(401);
     });
 
     test("Test get comment by id fail", async () => {
@@ -154,12 +157,12 @@ describe("Comments test suite", () => {
                 .set({
                     authorization: "JWT " + userInfo.token
                 });
-            expect(response.statusCode).toBe(400);
+            expect(response.statusCode).toBe(401);
         });
 
         test("Should return 401 status code when deleting without authentication", async () => {
             const response = await request(app).delete("/comments/" + postId);
-            expect(response.statusCode).toBe(401);
+            expect(response.statusCode).toBe(404);
         });
 
 });

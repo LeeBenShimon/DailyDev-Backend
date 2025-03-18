@@ -127,7 +127,7 @@ const login: RequestHandler = async (req, res) => {
         return;
     }
     try {
-        const user = await userModel.findOne({ email });
+        const user = await userModel.findOne({ email }).select("+password");
         if (!user) {
             res.status(401).send("Invalid email or password");
             return;

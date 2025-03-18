@@ -1,0 +1,128 @@
+@baseUrl = http://localhost:3000
+@email = oran@example.com
+@password = test123456
+@username = orna
+@googleCredential = YOUR_GOOGLE_ID_TOKEN
+
+### 1️⃣ Register a New User
+# @name registerUser
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}",
+    "username": "{{username}}"
+}
+
+### 2️⃣ User Login
+# @name loginUser
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+
+### Extract Tokens
+@accessToken = {{loginUser.response.body.accessToken}}
+@refreshToken = {{loginUser.response.body.refreshToken}}
+
+### 3️⃣ User Logout
+# @name logoutUser
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{accessToken}}
+
+### 4️⃣ User Login Again
+# @name loginUserAgain
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+
+### Extract New Tokens
+@newAccessToken = {{loginUserAgain.response.body.accessToken}}
+@newRefreshToken = {{loginUserAgain.response.body.refreshToken}}
+
+### 5️⃣ Create a Post
+# @name createPost
+POST {{baseUrl}}/posts
+Content-Type: application/json
+Authorization: Bearer {{newAccessToken}}
+
+{
+    "owner": "Lee",
+    "title": "My first post",
+    "content": "This is my first post!"
+}
+
+### Extract Post ID
+@postId = {{createPost.response.body._id}}
+
+### 6️⃣ Create a Comment on the Post
+# @name createComment
+POST {{baseUrl}}/comments
+Content-Type: application/json
+Authorization: Bearer {{newAccessToken}}
+
+{
+  "postId": "{{postId}}", 
+  "comment": "This is a test comment",
+  "owner": "Test"
+}
+
+### Extract Comment ID
+@commentId = {{createComment.response.body._id}}
+
+### 7️⃣ Get the Created Post
+GET {{baseUrl}}/posts/{{postId}}
+Authorization: Bearer {{newAccessToken}}
+
+### 8️⃣ Get Comments for the Post
+GET {{baseUrl}}/comments?postId={{postId}}
+Authorization: Bearer {{newAccessToken}}
+
+### 9️⃣ Delete the Comment
+DELETE {{baseUrl}}/comments/{{commentId}}
+Authorization: Bearer {{newAccessToken}}
+
+### 🔟 Delete the Post
+DELETE {{baseUrl}}/posts/{{postId}}
+Authorization: Bearer {{newAccessToken}}
+
+### 1️⃣1️⃣ Test Google Sign-In
+# @name googleSignIn
+POST {{baseUrl}}/auth/googleSignIn
+Content-Type: application/json
+
+{
+    "credential": "{{googleCredential}}"
+}
+
+### Extract Google Access Token
+@googleAccessToken = {{googleSignIn.response.body.accessToken}}
+
+### 1️⃣2️⃣ Test User Profile - Fetch Profile
+# @name getUserProfile
+GET {{baseUrl}}/user/profile
+Authorization: Bearer {{newAccessToken}}
+
+### 1️⃣3️⃣ Test User Profile - Update Profile
+# @name updateUserProfile
+PUT {{baseUrl}}/user/profile
+Content-Type: application/json
+Authorization: Bearer {{newAccessToken}}
+
+{
+    "name": "Updated Name",
+    "avatar": "https://example.com/avatar.jpg",
+    "bio": "Updated Bio"
+}
+
+### 1️⃣4️⃣ Fetch Profile Again to Verify Updates
+GET {{baseUrl}}/user/profile
+Authorization: Bearer {{newAccessToken}}

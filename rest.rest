@@ -1,7 +1,7 @@
 @baseUrl = http://localhost:3000
-@email = tutt@example.com
+@email = oran@example.com
 @password = test123456
-@username = testuser
+@username = orna
 @googleCredential = YOUR_GOOGLE_ID_TOKEN
 
 ### Login to get tokens
@@ -249,3 +249,5 @@ Authorization: Bearer {{googleAccessToken}}
     "title": "Google Sign-In Post",
     "content": "This post was created using Google Sign-In!"
 }
+
+
