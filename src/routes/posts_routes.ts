@@ -73,7 +73,8 @@ router.get("/", authMiddleware, postsController.getAll.bind(postsController));
 *       500:
 *         description: Internal server error
 */
-router.get("/:id", authMiddleware, postsController.getById.bind(postsController));
+router.get("/:id", authMiddleware, postsController.get.bind(postsController));
+
 
 /**
 * @swagger
@@ -185,7 +186,7 @@ router.post("/", authMiddleware, postsController.create.bind(postsController));
 */
 //
 router.put("/:id", authMiddleware, (req, res) => {
-    postsController.updateById(req, res);
+    postsController.update(req, res);
 });
 /**
 * @swagger
@@ -211,7 +212,7 @@ router.put("/:id", authMiddleware, (req, res) => {
 *       500:
 *         description: Internal server error
 */
-router.delete("/:id", authMiddleware, postsController.deleteById.bind(postsController));
+router.delete("/:id", authMiddleware, postsController.delete.bind(postsController));
 
 
 export default router;
