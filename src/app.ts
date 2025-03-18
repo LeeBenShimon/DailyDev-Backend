@@ -1,16 +1,25 @@
 // Lee-Ben-Shimon-322978909
 // Linoy-Eligulashvili-213655590
 
-// const { init } = require("../models/posts_model");
+import dotenv from 'dotenv';
+dotenv.config(); // Load environment variables
 
+import express from 'express';
 import initApp from "./server"
 
 const port = process.env.PORT;
+const app = express();
 
-initApp().then((app) => {
+// Serve static files from the "public" directory
+app.use(express.static('public'));
+
+// Initialize the app with additional configurations
+initApp(app).then(() => {
     app.listen(port, () => {
       console.log(`Example app listening at http://localhost:${port}`);
     });
+}).catch((error) => {
+    console.error("Failed to initialize app:", error);
 });
 
 
