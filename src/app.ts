@@ -16,8 +16,8 @@ app.use(express.static('public'));
 
 initApp().then((app) => {
     app.listen(port, () => {
-        console.log(`🚀 Server running at http://localhost:${port}`);
+        console.log(` Server running at http://localhost:${port}`);
     });
 }).catch((error) => {
-    console.error("❌ Failed to initialize app:", error);
+    console.error(" Failed to initialize app:", error);
 });
