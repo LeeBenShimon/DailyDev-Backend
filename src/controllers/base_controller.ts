@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { Model } from "mongoose";
+import PostModel from "../models/posts_model";
+import userModel from "../models/user_model";
 
 class BaseController<T> {
     model: Model<T>;
@@ -7,30 +9,40 @@ class BaseController<T> {
         this.model = model;
     }
 
-    async create(req:Request, res:Response): Promise<void> {
-        try{
-            const comment = await this.model.create(req.body);
-            res.status(201).send(comment);
-        }catch (error: unknown){
-            if (error instanceof Error) {
-                res.status(400).send({
-                    status: "error",
-                    message: error.message
-                });
-            } else {
-                res.status(400).send({
-                    status: "error",
-                    message: "An unknown error occurred"
-                });
+    async create(req: Request, res: Response): Promise<void>{
+        try {
+            const { title, content } = req.body;
+            const userId = req.query.userId; // ✅ Extracted from auth middleware
+    
+            if (!userId) {
+                res.status(400).json({ message: "User ID is required" });
+                return;
             }
+    
+            // ✅ Create new post
+            const newPost = await PostModel.create({ title, content, owner: userId });
+    
+            // ✅ Add the post reference to the user
+            await userModel.findByIdAndUpdate(userId, { $push: { posts: newPost._id } });
+    
+            res.status(201).json(newPost);
+        } catch (error) {
+            console.error("Error creating post:", error);
+            res.status(500).json({ message: "Internal server error" });
         }
-    }
+    };
+    
 
     async getAll(req: Request, res: Response): Promise<void> {
-        const filter = { ...req.query };
-        delete filter.userId;
         try {
-            const data = await this.model.find(filter as Partial<T>);
+            let filter: Partial<T> = {};
+    
+            // ✅ Ensure `owner` is a valid string before adding it to the filter
+            if (req.query.owner && typeof req.query.owner === "string") {
+                filter = { ...filter, owner: req.query.owner } as Partial<T>;
+            }
+    
+            const data = await this.model.find(filter);
             res.status(200).send(data);
         } catch (error: unknown) {
             if (error instanceof Error) {
@@ -46,6 +58,8 @@ class BaseController<T> {
             }
         }
     }
+    
+    
 
     async getById(req:Request, res:Response): Promise<void> {
         const id = req.params.id;

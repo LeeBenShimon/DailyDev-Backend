@@ -1,6 +1,3 @@
-// Linoy-Eligulashvili-213655590
-// Lee-Ben-Shimon-322978909
-
 import express, { Express } from "express";
 const app = express();
 import dotenv from "dotenv";
@@ -13,6 +10,8 @@ import authRoutes from "./routes/auth_routes";
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUI from 'swagger-ui-express';
 import cookieParser from 'cookie-parser';
+import profileRoutes from "./routes/profile_route";
+// import path from "path";
 
 const options = {
     definition: {
@@ -22,7 +21,7 @@ const options = {
             version: "1.0.0",
             description: "REST server including authentication using JWT",
         },
-        servers: [{ url: "http://localhost:3000", },],
+        servers: [{ url: "http://localhost:3000" }],
     },
     apis: ["./src/routes/*.ts"],
 };
@@ -31,30 +30,39 @@ app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
 
 function initApp() {
     return new Promise<Express>((resolve, reject) => {
-        const db = mongoose.connection;
-        db.on("error", (error) => console.error(error));
-        db.once("open", () => console.log("Connected to mongoDB"));
-
-
-        if (process.env.DB_CONNECT === undefined) {
+        if (!process.env.DB_CONNECT) {
             console.error("DB_CONNECT is not set");
-            reject();
-        } else {
-            mongoose.connect(process.env.DB_CONNECT).then(() => {
-                
-                app.use(bodyParser.json());
-                app.use(bodyParser.urlencoded({ extended: true }));
-                app.use(cookieParser());
-                app.use("/posts", postsRoutes);
-                app.use("/comments", commentsRoutes);
-                app.use("/auth", authRoutes);
-
-                resolve(app);
-            });
+            return reject();
         }
+
+        mongoose.connect(process.env.DB_CONNECT).then(() => {
+            console.log("Connected to MongoDB");
+
+            app.use(bodyParser.json());
+            app.use(bodyParser.urlencoded({ extended: true }));
+            app.use(cookieParser());
+
+            // API Routes
+            app.use("/posts", postsRoutes);
+            app.use("/comments", commentsRoutes);
+            app.use("/auth", authRoutes);
+            app.use("/user/profile", profileRoutes);
+
+            // // ✅ Serve static files from the correct `public/` location
+            // const publicPath = path.join(__dirname, "../public");
+            // app.use(express.static(publicPath));
+
+            // // ✅ Redirect `/` to `index.html`
+            // app.get("/", (req, res) => {
+            //     res.sendFile(path.join(publicPath, "index.html"));
+            // });
+
+            resolve(app);
+        }).catch((error) => {
+            console.error("MongoDB Connection Error:", error);
+            reject();
+        });
     });
-
 }
-
 
 export default initApp;

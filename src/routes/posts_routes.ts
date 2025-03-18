@@ -125,6 +125,7 @@ router.get("/:id", authMiddleware, postsController.getById.bind(postsController)
 */
 router.post("/", authMiddleware, postsController.create.bind(postsController));
 
+
 /**
 * @swagger
 * /posts/{id}:
