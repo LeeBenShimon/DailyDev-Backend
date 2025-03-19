@@ -5,7 +5,7 @@ export interface IUser {
   email: string;
   password: string;
   username: string;
-  avatar?: string;
+  profilePicture?: string;
   bio?: string;
   _id?: string;
   refreshTokens: string[];
@@ -27,7 +27,7 @@ const userSchema = new Schema<IUser>({
         required: true,
         unique: true
     },
-    avatar: {
+    profilePicture: {
         type: String,
     },
     bio: {
