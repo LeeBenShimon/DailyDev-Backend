@@ -165,6 +165,40 @@ router.post("/logout", authMiddleware, authController.logout);
 */
 router.post("/refresh", authController.refresh);
 
-
+/**
+* @swagger
+* /auth/updateProfile:
+*   put:
+*     summary: Update user profile
+*     tags: [Auth]
+*     security:
+*       - bearerAuth: []
+*     requestBody:
+*       required: true
+*       content:
+*         application/json:
+*           schema:
+*             type: object
+*             properties:
+*               username:
+*                 type: string
+*                 description: New username
+*               bio:
+*                 type: string
+*                 description: New bio
+*               profilePicture:
+*                 type: string
+*                 description: New profile picture URL
+*     responses:
+*       200:
+*         description: Profile updated successfully
+*       401:
+*         description: Unauthorized
+*       404:
+*         description: User not found
+*       500:
+*         description: Internal server error
+*/
+router.put("/updateProfile", authMiddleware, authController.updateProfile);
 
 export default router;

@@ -257,6 +257,15 @@ const refresh: RequestHandler = async (req, res) => {
     }
 };
 
+const validateToken = (token: string): TokenPayload | null => {
+    try {
+        if (!process.env.TOKEN_SECRET) throw new Error("Server configuration error");
+        return jwt.verify(token, process.env.TOKEN_SECRET) as TokenPayload;
+    } catch (err) {
+        return null;
+    }
+};
+
 export const authMiddleware: RequestHandler = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     if (!authHeader?.startsWith('Bearer ')) {
@@ -265,63 +274,59 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
-    if (!process.env.TOKEN_SECRET) {
-        res.status(500).send("Server configuration error");
+    const decoded = validateToken(token);
+    if (!decoded) {
+        res.status(401).send("Invalid or expired token");
+        return;
+    }
+
+    const user = await userModel.findById(decoded._id);
+    if (!user || user.refreshTokens.length === 0) {
+        res.status(401).send("User is logged out. Please login again.");
+        return;
+    }
+
+    req.query.userId = decoded._id;
+    next();
+};
+
+const updateProfile: RequestHandler = async (req, res) => {
+    const userId = req.query.userId as string; // Extract userId from the authMiddleware
+    const { username, bio, profilePicture } = req.body;
+
+    if (!userId) {
+        res.status(401).send("Unauthorized: User ID missing");
         return;
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.TOKEN_SECRET) as TokenPayload;
-        const user = await userModel.findById(decoded._id);
-
+        const user = await userModel.findById(userId);
         if (!user) {
             res.status(404).send("User not found");
             return;
         }
 
-        // Check if user is logged out (no refresh tokens)
-        if (user.refreshTokens.length === 0) {
-            res.status(401).send({
-                error: "logged_out",
-                message: "User is logged out. Please login again."
-            });
-            return;
-        }
+        // Update only the allowed fields
+        if (username) user.username = username;
+        if (bio) user.bio = bio;
+        if (profilePicture) user.profilePicture = profilePicture;
 
-        // Verify this access token belongs to an active session
-        const hasValidSession = user.refreshTokens.some(refreshToken => {
-            try {
-                const decodedRefresh = jwt.verify(refreshToken, process.env.TOKEN_SECRET!) as TokenPayload;
-                return decodedRefresh.random === decoded.random;
-            } catch {
-                return false;
-            }
+        await user.save();
+
+        res.status(200).send({
+            message: "Profile updated successfully",
+            user: {
+                _id: user._id,
+                email: user.email,
+                username: user.username,
+                bio: user.bio,
+                profilePicture: user.profilePicture,
+            },
         });
-
-        if (!hasValidSession) {
-            res.status(401).send({
-                error: "invalid_session",
-                message: "Invalid or expired session. Please login again."
-            });
-            return;
-        }
-
-        // Add user ID to request for use in protected routes
-        req.query.userId = decoded._id;
-        next();
     } catch (err) {
-        if (err instanceof jwt.TokenExpiredError) {
-            res.status(401).send({
-                error: "token_expired",
-                message: "Access token expired. Please refresh your token."
-            });
-        } else {
-            res.status(401).send({
-                error: "invalid_token",
-                message: "Invalid token"
-            });
-        }
+        console.error("Error updating profile:", err);
+        res.status(500).send("Internal server error");
     }
 };
 
-export default { googleSignIn, register, login, logout, refresh };
+export default { googleSignIn, register, login, logout, refresh, updateProfile };

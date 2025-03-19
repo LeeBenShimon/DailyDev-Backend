@@ -3,7 +3,9 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IPost extends Document {
     title: string;
     content: string;
-    owner: mongoose.Schema.Types.ObjectId; 
+    owner: mongoose.Types.ObjectId;
+    likes: mongoose.Types.ObjectId[];
+    image?: string; // Optional field to store the image path or URL
 }
 
 const postSchema = new Schema<IPost>({
@@ -16,9 +18,17 @@ const postSchema = new Schema<IPost>({
         required: true
     },
     owner: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Users", 
         required: true
+    },
+    likes: [{
+        type: Schema.Types.ObjectId,
+        ref: "Users",
+    }],
+    image: {
+        type: String, // Path or URL of the uploaded image
+        required: false
     }
 });
 

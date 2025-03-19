@@ -106,23 +106,19 @@ Content-Type: application/json
 ### Extract Google Access Token
 @googleAccessToken = {{googleSignIn.response.body.accessToken}}
 
-### 1️⃣2️⃣ Test User Profile - Fetch Profile
-# @name getUserProfile
-GET {{baseUrl}}/user/profile
+### Like a Post
+# @name likePost
+POST {{baseUrl}}/posts/{{postId}}/like
 Authorization: Bearer {{newAccessToken}}
 
-### 1️⃣3️⃣ Test User Profile - Update Profile
-# @name updateUserProfile
-PUT {{baseUrl}}/user/profile
-Content-Type: application/json
+### Unlike a Post
+# @name unlikePost
+POST {{baseUrl}}/posts/{{postId}}/unlike
 Authorization: Bearer {{newAccessToken}}
 
-{
-    "name": "Updated Name",
-    "avatar": "https://example.com/avatar.jpg",
-    "bio": "Updated Bio"
-}
-
-### 1️⃣4️⃣ Fetch Profile Again to Verify Updates
-GET {{baseUrl}}/user/profile
+### Get Likes for a Post
+# @name getLikes
+GET {{baseUrl}}/posts/{{postId}}/likes
 Authorization: Bearer {{newAccessToken}}
+
+

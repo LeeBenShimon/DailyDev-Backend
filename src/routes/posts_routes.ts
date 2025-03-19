@@ -122,7 +122,7 @@ router.get("/:id", authMiddleware, postsController.get.bind(postsController));
 *                       _id:
 *                           type: string
 *                           description: the post id
-*                           example: "60f3b4b3b3b3b3b3b3b3b3"
+*                           example: "60f3b4b3b3b3b3b3b3"
 */
 router.post("/", authMiddleware, postsController.create.bind(postsController));
 
@@ -174,11 +174,11 @@ router.post("/", authMiddleware, postsController.create.bind(postsController));
 *                       owner:
 *                           type: string
 *                           description: the post owner
-*                           example: "60f3b4b3b3b3b3b3b3b3b3b3"
+*                           example: "60f3b4b3b3b3b3b3b3"
 *                       _id:
 *                           type: string
 *                           description: the post id
-*                           example: "60f3b4b3b3b3b3b3b3b3b3"
+*                           example: "60f3b4b3b3b3b3b3b3"
 *       401:
 *         description: Post not found
 *       500:
@@ -214,5 +214,125 @@ router.put("/:id", authMiddleware, (req, res) => {
 */
 router.delete("/:id", authMiddleware, postsController.delete.bind(postsController));
 
+/**
+ * @swagger
+ * /posts/{id}/like:
+ *   post:
+ *     summary: Like a post
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post to like
+ *     responses:
+ *       200:
+ *         description: Post liked successfully
+ *       404:
+ *         description: Post not found
+ */
+router.post("/:id/like", authMiddleware, postsController.like!.bind(postsController));
+
+/**
+ * @swagger
+ * /posts/{id}/unlike:
+ *   post:
+ *     summary: Unlike a post
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post to unlike
+ *     responses:
+ *       200:
+ *         description: Post unliked successfully
+ *       404:
+ *         description: Post not found
+ */
+router.post("/:id/unlike", authMiddleware, postsController.unlike!.bind(postsController));
+
+/**
+ * @swagger
+ * /posts/{id}/likes:
+ *   get:
+ *     summary: Get users who liked a post
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post
+ *     responses:
+ *       200:
+ *         description: List of users who liked the post
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   username:
+ *                     type: string
+ *                   avatar:
+ *                     type: string
+ */
+router.get("/:id/likes", authMiddleware, postsController.getLikes!.bind(postsController));
+
+/**
+ * @swagger
+ * /posts/{id}/comments:
+ *   get:
+ *     summary: Get comments for a post
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post
+ *     responses:
+ *       200:
+ *         description: List of comments for the post
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   comment:
+ *                     type: string
+ *                   owner:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       username:
+ *                         type: string
+ *                       avatar:
+ *                         type: string
+ */
+router.get("/:id/comments", authMiddleware, postsController.getComments!.bind(postsController));
 
 export default router;
