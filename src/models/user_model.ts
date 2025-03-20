@@ -5,11 +5,10 @@ export interface IUser {
   email: string;
   password: string;
   username: string;
-  avatar?: string;
+  profilePicture?: string;
   bio?: string;
   _id?: string;
   refreshTokens: string[];
-  posts: mongoose.Schema.Types.ObjectId[]; 
 }
 
 const userSchema = new Schema<IUser>({
@@ -27,7 +26,7 @@ const userSchema = new Schema<IUser>({
         required: true,
         unique: true
     },
-    avatar: {
+    profilePicture: {
         type: String,
     },
     bio: {
@@ -35,10 +34,6 @@ const userSchema = new Schema<IUser>({
     },
     refreshTokens: [{
         type: String,
-    }],
-    posts: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Posts", 
     }]
 });
 

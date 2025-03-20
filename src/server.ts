@@ -7,8 +7,9 @@ import authRoutes from "./routes/auth_routes";
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUI from 'swagger-ui-express';
 import cookieParser from 'cookie-parser';
-import profileRoutes from "./routes/profile_route";
+import fileRoutes from "./routes/file_routes";
 import cors from "cors";
+// import path from "path";
 
 
 dotenv.config();
@@ -29,6 +30,9 @@ const options = {
     apis: ["./src/routes/*.ts"],
 };
 const specs = swaggerJsDoc(options);
+
+app.use("/public/", express.static("public")); 
+app.use("/storage/", express.static("storage"));
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
 
 //  Initialize the application
@@ -55,7 +59,15 @@ async function initApp(): Promise<Express> {
         app.use("/posts", postsRoutes);
         app.use("/comments", commentsRoutes);
         app.use("/auth", authRoutes);
-        app.use("/user/profile", profileRoutes);
+        app.use("/file", fileRoutes);
+        // ✅ Serve static files from the correct `public/` location
+        // const publicPath = path.join(__dirname, "../public");
+        // app.use(express.static(publicPath));
+
+        // // ✅ Redirect `/` to `index.html`
+        // app.get("/", (req, res) => {
+        //     res.sendFile(path.join(publicPath, "index.html"));
+        // });
 
         return app;
     } catch (error) {

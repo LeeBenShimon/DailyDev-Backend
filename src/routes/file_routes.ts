@@ -1,28 +1,62 @@
-import express from 'express';
+
+import express from "express";
 const router = express.Router();
 import multer from "multer";
 
-const base = "http://" + process.env.DOMAIN_BASE + ":" + process.env.PORT + "/";
+/**
+ * @swagger
+ * /files:
+ *   post:
+ *     summary: Uploads a file
+ *     description: Uploads a file to the server
+ *     tags: [Files]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: The file to upload
+ *     responses:
+ *       200:
+ *         description: File uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 url:
+ *                   type: string
+ *                   description: The URL of the uploaded file
+ *                   example: "http://example.com/storage/1234567890.txt"
+ *       400:
+ *         description: Bad request
+ */
+
+
+
+const base = (process.env.DOMAIN_BASE || "http://localhost:3000") + '/' ;
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'public/')
+        cb(null, 'storage/')
     },
     filename: function (req, file, cb) {
-        const ext = file.originalname.split(' ')
-            .filter(Boolean) // Remove empty extensions (e.g. 'filename...txt)
+        const ext = file.originalname.split('.')
+            .filter(Boolean) // removes empty extensions (e.g. `filename...txt`)
             .slice(1)
-            .join(' ')
-            cb(null, Date.now() + "." + ext)
+            .join('.')
+        cb(null, Date.now() + "." + ext)
     }
 })
 const upload = multer({ storage: storage });
 
 router.post('/', upload.single("file"), function (req, res) {
-    if (req.file) {
-        console.log("router.post(/file: " + base + req.file.path)
-        res.status(200).send({ url: base + req.file.path })
-    } else {
-        res.status(400).send({ error: "File upload failed" })
-    }
+    console.log("router.post(/file: " + base + req.file?.path)
+    res.status(200).send({ url: base + req.file?.path })
 });
-export = router;
+export default router;
+
