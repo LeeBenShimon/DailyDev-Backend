@@ -62,7 +62,7 @@ describe("Auth Tests", () => {
     });
     test("Missing refresh token in logout", async () => {
         const response = await request(app).post("/auth/logout").send({});
-        expect(response.statusCode).toBe(400);
+        expect(response.statusCode).toBe(401);
         expect(response.text).toContain("missing token");
     });
     jest.spyOn(userModel, "findOne").mockImplementationOnce(() => {
@@ -313,5 +313,105 @@ jest.setTimeout(10000);
     });
     
 
+    const testUser = {
+        email: "newuser@example.com",
+        password: "password123",
+        username: "newuser"
+    };
 
+    test("Register a new user", async () => {
+        const response = await request(app).post("/auth/register").send(testUser);
+        expect(response.statusCode).toBe(201);
+        expect(response.body.email).toBe(testUser.email);
+        expect(response.body.username).toBe(testUser.username);
+    });
+
+    test("Fail to register with existing email", async () => {
+        const response = await request(app).post("/auth/register").send(testUser);
+        expect(response.statusCode).toBe(400);
+        expect(response.text).toContain("Email already exists");
+    });
+
+    let accessToken: string;
+    let refreshToken: string;
+
+    test("Login with valid credentials", async () => {
+        const response = await request(app).post("/auth/login").send({
+            email: testUser.email,
+            password: testUser.password,
+        });
+        expect(response.statusCode).toBe(200);
+        expect(response.body.accessToken).toBeDefined();
+        expect(response.body.refreshToken).toBeDefined();
+        accessToken = response.body.accessToken;
+        refreshToken = response.body.refreshToken;
+    });
+
+    test("Fail to login with invalid password", async () => {
+        const response = await request(app).post("/auth/login").send({
+            email: testUser.email,
+            password: "wrongpassword",
+        });
+        expect(response.statusCode).toBe(401);
+        expect(response.text).toContain("Invalid email or password");
+    });
+
+    test("Refresh access token with valid refresh token", async () => {
+        const response = await request(app).post("/auth/refresh").send({
+            refreshToken,
+        });
+        expect(response.statusCode).toBe(200);
+        expect(response.body.accessToken).toBeDefined();
+        expect(response.body.refreshToken).toBeDefined();
+        accessToken = response.body.accessToken;
+        refreshToken = response.body.refreshToken;
+    });
+
+    test("Fail to refresh token with invalid refresh token", async () => {
+        const response = await request(app).post("/auth/refresh").send({
+            refreshToken: "invalidtoken",
+        });
+        expect(response.statusCode).toBe(401);
+        expect(response.text).toContain("Missing token");
+    });
+
+    test("Update user profile", async () => {
+        const response = await request(app)
+            .put("/auth/updateProfile")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send({
+                username: "updateduser",
+                bio: "This is a test bio",
+            });
+        expect(response.statusCode).toBe(200);
+        expect(response.body.user.username).toBe("updateduser");
+        expect(response.body.user.bio).toBe("This is a test bio");
+    });
+
+    test("Fail to update profile without token", async () => {
+        const response = await request(app).put("/auth/updateProfile").send({
+            username: "updateduser",
+        });
+        expect(response.statusCode).toBe(401);
+        expect(response.text).toContain("Missing token");
+    });
+
+    test("Logout user", async () => {
+        const response = await request(app)
+            .post("/auth/logout")
+            .set("Authorization", `Bearer ${accessToken}`);
+        expect(response.statusCode).toBe(200);
+        expect(response.text).toContain("Logged out successfully");
+    });
+
+    test("Fail to access protected route after logout", async () => {
+        const response = await request(app)
+            .put("/auth/updateProfile")
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send({
+                username: "anotherupdate",
+            });
+        expect(response.statusCode).toBe(401);
+        expect(response.text).toContain("User is logged out. Please login again.");
+    });
 });

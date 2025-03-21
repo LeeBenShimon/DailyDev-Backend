@@ -4,13 +4,13 @@ import mongoose from "mongoose";
 import postsRoutes from "./routes/posts_routes";
 import commentsRoutes from "./routes/comments_routes";
 import authRoutes from "./routes/auth_routes";
+import usersRoutes from "./routes/users_routes"; 
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUI from 'swagger-ui-express';
 import cookieParser from 'cookie-parser';
 import fileRoutes from "./routes/file_routes";
 import cors from "cors";
-// import path from "path";
-
+import path from "path";
 
 dotenv.config();
 
@@ -60,14 +60,15 @@ async function initApp(): Promise<Express> {
         app.use("/comments", commentsRoutes);
         app.use("/auth", authRoutes);
         app.use("/file", fileRoutes);
-        // ✅ Serve static files from the correct `public/` location
-        // const publicPath = path.join(__dirname, "../public");
-        // app.use(express.static(publicPath));
+        app.use("/user/profile", usersRoutes); // Fix route registration
+        
+        const publicPath = path.join(__dirname, "../public");
+        app.use(express.static(publicPath));
 
-        // // ✅ Redirect `/` to `index.html`
-        // app.get("/", (req, res) => {
-        //     res.sendFile(path.join(publicPath, "index.html"));
-        // });
+        
+        app.get("/", (req, res) => {
+            res.sendFile(path.join(publicPath, "index.html"));
+        });
 
         return app;
     } catch (error) {
