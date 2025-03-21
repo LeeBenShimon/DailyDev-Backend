@@ -1,5 +1,5 @@
 {
-  "name": "linoy-eligulashvili-213655590-lee-benshimon-322978909",
+  "name": "noa-aharon-207131400-lee-benshimon-322978909",
   "version": "1.0.0",
   "description": "this is task 1",
   "main": "app.js",
@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/LeeBenShimon/test-app#readme",
   "dependencies": {
+    "@google/generative-ai": "^0.24.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "cookie-parser": "^1.4.7",
