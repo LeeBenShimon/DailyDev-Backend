@@ -290,43 +290,6 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
     next();
 };
 
-const updateProfile: RequestHandler = async (req, res) => {
-    const userId = req.query.userId as string; // Extract userId from the authMiddleware
-    const { username, bio, profilePicture } = req.body;
 
-    if (!userId) {
-        res.status(401).send("Unauthorized: User ID missing");
-        return;
-    }
 
-    try {
-        const user = await userModel.findById(userId);
-        if (!user) {
-            res.status(404).send("User not found");
-            return;
-        }
-
-        // Update only the allowed fields
-        if (username) user.username = username;
-        if (bio) user.bio = bio;
-        if (profilePicture) user.profilePicture = profilePicture;
-
-        await user.save();
-
-        res.status(200).send({
-            message: "Profile updated successfully",
-            user: {
-                _id: user._id,
-                email: user.email,
-                username: user.username,
-                bio: user.bio,
-                profilePicture: user.profilePicture,
-            },
-        });
-    } catch (err) {
-        console.error("Error updating profile:", err);
-        res.status(500).send("Internal server error");
-    }
-};
-
-export default { googleSignIn, register, login, logout, refresh, updateProfile };
+export default { googleSignIn, register, login, logout, refresh };
