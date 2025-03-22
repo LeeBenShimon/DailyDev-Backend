@@ -1,5 +1,8 @@
 import express from "express";
-import { getUserProfile, updateUserProfile } from "../controllers/users_controller"; // Import profile controller
+import {
+  getUserProfile,
+  updateUserProfile,
+} from "../controllers/users_controller"; // Import profile controller
 import { authMiddleware } from "../controllers/auth_controller"; // Authentication middleware
 
 const router = express.Router();
@@ -54,6 +57,7 @@ const router = express.Router();
  *         description: Internal server error.
  */
 router.get("/", authMiddleware, getUserProfile); // Matches "/user/profile"
+router.get("/getUserById", getUserProfile); // this supports ?userId=
 
 /**
  * @swagger
