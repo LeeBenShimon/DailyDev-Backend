@@ -24,27 +24,6 @@ class BaseController<T extends Document> {
     }
   }
 
-  //   async getAll(req: Request, res: Response): Promise<void> {
-  //     try {
-  //       const filter: FilterQuery<T> = {} as FilterQuery<T> &
-  //         Record<string, unknown>;
-
-  //       if (typeof req.query.owner === "string") {
-  //         (filter as Record<string, unknown>).owner = req.query.owner;
-  //       }
-
-  //       if (typeof req.query.postId === "string") {
-  //         (filter as Record<string, unknown>).postId = req.query.postId;
-  //       }
-
-  //       const data = await this.model.find(filter);
-  //       res.status(200).json(data);
-  //     } catch (error) {
-  //       console.error("Error fetching items:", error);
-  //       res.status(500).json({ message: "Internal server error" });
-  //     }
-  //   }
-
   async getAll(req: Request, res: Response): Promise<void> {
     try {
       const filter: FilterQuery<T> = {} as FilterQuery<T> &

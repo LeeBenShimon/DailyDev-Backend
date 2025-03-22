@@ -9,6 +9,7 @@ import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
 import cookieParser from "cookie-parser";
 import fileRoutes from "./routes/file_routes";
+import aiRoutes from "./routes/ai_routes";
 import cors from "cors";
 import path from "path";
 
@@ -65,6 +66,7 @@ async function initApp(): Promise<Express> {
     app.use("/auth", authRoutes);
     app.use("/file", fileRoutes);
     app.use("/user/profile", usersRoutes); // Fix route registration
+    app.use("/api/ai", aiRoutes);
 
     const publicPath = path.join(__dirname, "../public");
     app.use(express.static(publicPath));
