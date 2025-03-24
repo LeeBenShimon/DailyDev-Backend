@@ -64,7 +64,7 @@ async function initApp(): Promise<Express> {
     app.use("/posts", postsRoutes);
     app.use("/comments", commentsRoutes);
     app.use("/auth", authRoutes);
-    app.use("/file", fileRoutes);
+    app.use("/files", fileRoutes);
     app.use("/user", usersRoutes); // Register all user-related routes under "/user"
 
     app.use("/api/ai", aiRoutes);
