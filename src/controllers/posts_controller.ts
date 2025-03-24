@@ -9,43 +9,53 @@ const postsController = createController<IPost>(postsModel);
 
 postsController.like = async (req, res) => {
     try {
-        const post = await postsModel.findById(req.params.id) as IPost;
-        if (!post) {
-            res.status(404).json({ message: "Post not found" });
-            return;
-        }
-
-        const userId = req.query.userId as string;
-        if (!post.likes.some((id) => id.toString() === userId)) { // Use `toString()` for comparison
-            post.likes.push(new mongoose.Types.ObjectId(userId)); // Add as ObjectId
-            await post.save();
-        }
-
-        res.status(200).json({ message: "Post liked successfully" });
-    } catch (error) {
-        console.error("Error liking post:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-};
-
-postsController.unlike = async (req, res) => {
-    try {
-        const post = await postsModel.findById(req.params.id) as IPost;
-        if (!post) {
-            res.status(404).json({ message: "Post not found" });
-            return;
-        }
-
-        const userId = req.query.userId as string;
-        post.likes = post.likes.filter((id) => id.toString() !== userId); // Use `toString()` for comparison
+      const post = (await postsModel.findById(req.params.id)) as IPost;
+      if (!post) {
+        res.status(404).json({ message: "Post not found" });
+        return;
+      }
+  
+      const userId = req.body.userId as string;
+      if (!userId) {
+        res.status(400).json({ message: "Missing userId" });
+        return;
+      }
+  
+      if (!post.likes.some((id) => id.toString() === userId)) {
+        post.likes.push(new mongoose.Types.ObjectId(userId));
         await post.save();
-
-        res.status(200).json({ message: "Post unliked successfully" });
+      }
+  
+      res.status(200).json({ message: "Post liked successfully" });
     } catch (error) {
-        console.error("Error unliking post:", error);
-        res.status(500).json({ message: "Internal server error" });
+      console.error("Error liking post:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
-};
+  };
+  
+  postsController.unlike = async (req, res) => {
+    try {
+      const post = (await postsModel.findById(req.params.id)) as IPost;
+      if (!post) {
+        res.status(404).json({ message: "Post not found" });
+        return;
+      }
+  
+      const userId = req.body.userId as string;
+      if (!userId) {
+        res.status(400).json({ message: "Missing userId" });
+        return;
+      }
+  
+      post.likes = post.likes.filter((id) => id.toString() !== userId);
+      await post.save();
+  
+      res.status(200).json({ message: "Post unliked successfully" });
+    } catch (error) {
+      console.error("Error unliking post:", error);
+      res.status(500).json({ message: "Internal server error"});
+    }
+  };
 
 postsController.getLikes = async (req, res) => {
     try {
