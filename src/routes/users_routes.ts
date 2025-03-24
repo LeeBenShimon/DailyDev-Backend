@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  getUserById,
   getUserProfile,
   updateUserProfile,
 } from "../controllers/users_controller"; // Import profile controller
@@ -57,7 +58,37 @@ const router = express.Router();
  *         description: Internal server error.
  */
 router.get("/", authMiddleware, getUserProfile); // Matches "/user/profile"
-router.get("/getUserById", getUserProfile); // this supports ?userId=
+
+
+/**
+ * @swagger
+ * /user/getUserById:
+ *   get:
+ *     summary: Get user by ID
+ *     description: Retrieve any user's public profile by user ID.
+ *     tags: [Profile]
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the user to retrieve.
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Missing userId.
+ *       404:
+ *         description: User not found.
+ *       500:
+ *         description: Internal server error.
+ */
+router.get("/getUserById", getUserById);
 
 /**
  * @swagger

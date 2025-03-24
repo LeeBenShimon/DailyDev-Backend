@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import userModel from "../models/user_model";
 
 
-// Get User Profile
+
 
 const getUserProfile = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -21,16 +21,15 @@ const getUserProfile = async (req: Request, res: Response): Promise<void> => {
     }
 };
   
-// await User.findById(id);
-// Update User Profile
+
 const updateUserProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.query.userId;
-    const { name, avatar, bio } = req.body;
+    const { name, profilePicture, bio } = req.body;
 
     const updatedUser = await userModel.findByIdAndUpdate(
       userId,
-      { name, avatar, bio },
+      { name, profilePicture, bio },
       { new: true, runValidators: true }
     ).select("-password -refreshToken");
 
@@ -46,5 +45,31 @@ const updateUserProfile = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-// ✅ Export the functions properly
-export { getUserProfile, updateUserProfile };
+// GET user profile by userId (from query param)
+const getUserById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.query.userId;
+
+    if (!userId) {
+      res.status(400).json({ message: "Missing userId" });
+      return;
+    }
+
+    const user = await userModel
+      .findById(userId)
+      .select("-password -refreshToken");
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching user by ID:", error);
+    res.status(500).json({ message: "Internal server error"});
+}
+};
+
+
+export { getUserProfile, updateUserProfile, getUserById };
