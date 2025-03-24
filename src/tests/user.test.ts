@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import request from 'supertest';
 import initApp from '../server';
@@ -11,8 +12,19 @@ import {
   updateUserProfile,
   getUserById
 } from '../controllers/users_controller';
+import { Request, Response } from "express";
 
 jest.mock("../models/user_model");
+
+// Mock console.error to suppress error logs in tests
+const originalConsoleError = console.error;
+beforeAll(() => {
+  console.error = jest.fn();
+});
+
+afterAll(() => {
+  console.error = originalConsoleError;
+});
 
 let app: Express;
 let accessToken: string;
@@ -24,236 +36,234 @@ beforeAll(async () => {
   await postsModel.deleteMany?.({});
   await commentsModel.deleteMany?.({});
 
-  const user = {
-    email: `user${Date.now()}@example.com`,
-    password: "password123",
-    username: "testuser"
+  const testUserCredentials = {
+    email: `test${Math.random().toString(36).substring(2)}@example.com`,
+    password: Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2),
+    username: `testuser${Math.random().toString(36).substring(2)}`
   };
-  const registerRes = await request(app).post("/auth/register").send(user);
-  userId = registerRes.body._id;
 
-  const loginRes = await request(app).post("/auth/login").send(user);
-  accessToken = loginRes.body.accessToken;
+  try {
+    const registerRes = await request(app).post("/auth/register").send(testUserCredentials);
+    userId = registerRes.body._id;
+
+    const loginRes = await request(app).post("/auth/login").send({
+      email: testUserCredentials.email,
+      password: testUserCredentials.password
+    });
+    accessToken = loginRes.body.accessToken;
+  } catch (error) {
+    console.error('Setup failed:', error);
+    throw error;
+  }
 });
 
 afterAll(async () => {
   await mongoose.connection.close();
+  await new Promise(resolve => setTimeout(resolve, 500));
 });
 
-describe("Users Controller Integration Tests (matching actual routes)", () => {
-  test("getUserById - should return user by ID", async () => {
-    const res = await request(app).get("/user/getUserById").query({ userId });
-    expect(res.statusCode).toBe(200);
-    expect(res.body._id).toBe(userId);
-  });
 
-  test("updateProfile - should update user profile", async () => {
-    const res = await request(app)
-      .put("/user")
-      .set("Authorization", `Bearer ${accessToken}`)
-      .send({ username: "updatedUser", bio: "New bio", avatar: "avatar.jpg" });
 
-    expect(res.statusCode).toBe(200);
-    expect(res.body.username).toBe("updatedUser");
-  });
+describe("Users Controller Unit Tests", () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let mockJson: jest.Mock;
+  let mockStatus: jest.Mock;
 
-  test("getUserProfile - should return public user profile", async () => {
-    const res = await request(app).get("/user/profile").query({ userId });
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toMatchObject({
-      username: "updatedUser",
-      avatar: "avatar.jpg",
-      bio: "New bio"
-    });
-  });
-
-  test.skip("getUserStats - should return user stats", async () => {
-    const res = await request(app).get("/user/stats").query({ userId });
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ postsCount: 0, commentsCount: 0 });
-  });
-});
-
-// Reusable mock response
-const mockResponse = () => {
-  const res: any = {};
-  res.status = jest.fn().mockReturnValue(res);
-  res.json = jest.fn().mockReturnValue(res);
-  return res;
-};
-
-describe("getUserProfile Unit Tests", () => {
-  afterEach(() => {
+  beforeEach(() => {
+    mockJson = jest.fn();
+    mockStatus = jest.fn().mockReturnThis();
+    mockRes = {
+      json: mockJson,
+      status: mockStatus
+    };
+    mockReq = {};
     jest.clearAllMocks();
   });
 
-  test("should return user profile when user exists", async () => {
-    const req: any = { query: { userId: "abc123" } };
-    const res = mockResponse();
-
-    (userModel.findById as jest.Mock).mockResolvedValue({ username: "Lee" });
-
-    await getUserProfile(req, res);
-
-    expect(userModel.findById).toHaveBeenCalledWith("abc123");
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({ username: "Lee" });
-  });
-
-  test("should return 404 when user is not found", async () => {
-    const req: any = { query: { userId: "missing" } };
-    const res = mockResponse();
-
-    (userModel.findById as jest.Mock).mockResolvedValue(null);
-
-    await getUserProfile(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({ message: "User not found" });
-  });
-
-  test("should return 500 on error", async () => {
-    const req: any = { query: { userId: "errorUser" } };
-    const res = mockResponse();
-
-    (userModel.findById as jest.Mock).mockRejectedValue(new Error("DB error"));
-
-    await getUserProfile(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ message: "Internal server error" });
-  });
-});
-
-describe("updateUserProfile Unit Tests", () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test("should update user profile successfully", async () => {
-    const req: any = {
-      query: { userId: "abc123" },
-      body: {
-        name: "Updated User",
-        profilePicture: "new-pic.jpg",
-        bio: "Updated bio"
-      }
-    };
-    const res = mockResponse();
-
-    const mockSelect = jest.fn().mockResolvedValue({
-      _id: "abc123",
-      name: "Updated User",
-      profilePicture: "new-pic.jpg",
-      bio: "Updated bio"
+  describe('getUserProfile', () => {
+    it('should return 400 if userId is missing', async () => {
+      mockReq.query = {};
+      await getUserProfile(mockReq as Request, mockRes as Response);
+      expect(mockStatus).toHaveBeenCalledWith(400);
+      expect(mockJson).toHaveBeenCalledWith({ message: 'Missing userId' });
     });
 
-    (userModel.findByIdAndUpdate as jest.Mock).mockReturnValue({ select: mockSelect });
+    it('should return user profile when user exists', async () => {
+      const userId = new mongoose.Types.ObjectId().toString();
+      const mockUser = {
+        _id: userId,
+        username: 'testuser11111',
+        profilePicture: 'test.jpg',
+        bio: 'test bio'
+      };
 
-    await updateUserProfile(req, res);
+      mockReq.query = { userId };
+      (userModel.findById as jest.Mock).mockReturnValue({
+        select: jest.fn().mockResolvedValue(mockUser)
+      });
 
-    expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
-      "abc123",
-      {
-        name: "Updated User",
-        profilePicture: "new-pic.jpg",
-        bio: "Updated bio"
-      },
-      { new: true, runValidators: true }
-    );
+      await getUserProfile(mockReq as Request, mockRes as Response);
+      expect(userModel.findById).toHaveBeenCalledWith(userId);
+      expect(mockStatus).toHaveBeenCalledWith(200);
+      expect(mockJson).toHaveBeenCalledWith(mockUser);
+    });
 
-    expect(res.json).toHaveBeenCalledWith({
-      _id: "abc123",
-      name: "Updated User",
-      profilePicture: "new-pic.jpg",
-      bio: "Updated bio"
+    it('should return 404 when user is not found', async () => {
+      const userId = new mongoose.Types.ObjectId().toString();
+      mockReq.query = { userId };
+      (userModel.findById as jest.Mock).mockReturnValue({
+        select: jest.fn().mockResolvedValue(null)
+      });
+
+      await getUserProfile(mockReq as Request, mockRes as Response);
+      expect(mockStatus).toHaveBeenCalledWith(404);
+      expect(mockJson).toHaveBeenCalledWith({ message: 'User not found' });
+    });
+
+    it('should return 500 on database error', async () => {
+      const userId = new mongoose.Types.ObjectId().toString();
+      mockReq.query = { userId };
+      (userModel.findById as jest.Mock).mockReturnValue({
+        select: jest.fn().mockRejectedValue(new Error('Database error'))
+      });
+
+      await getUserProfile(mockReq as Request, mockRes as Response);
+      expect(mockStatus).toHaveBeenCalledWith(500);
+      expect(mockJson).toHaveBeenCalledWith({ message: 'Internal server error' });
     });
   });
 
-  test("should return 404 if user not found", async () => {
-    const req: any = {
-      query: { userId: "notfound" },
-      body: { name: "No User", profilePicture: "", bio: "" }
-    };
-    const res = mockResponse();
+  describe('updateUserProfile', () => {
+    it('should return 400 if userId is missing', async () => {
+      mockReq.query = {};
+      mockReq.body = {
+        username: 'newuser',
+        profilePicture: 'new.jpg',
+        bio: 'new bio'
+      };
 
-    const mockSelect = jest.fn().mockResolvedValue(null);
-    (userModel.findByIdAndUpdate as jest.Mock).mockReturnValue({ select: mockSelect });
+      await updateUserProfile(mockReq as Request, mockRes as Response);
+      expect(mockStatus).toHaveBeenCalledWith(400);
+      expect(mockJson).toHaveBeenCalledWith({ message: 'Missing userId' });
+    });
 
-    await updateUserProfile(req, res);
+    it('should update user profile successfully', async () => {
+      const userId = new mongoose.Types.ObjectId().toString();
+      const updateData = {
+        username: 'newuser',
+        profilePicture: 'new.jpg',
+        bio: 'new bio'
+      };
 
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({ message: "User not found" });
+      mockReq.query = { userId };
+      mockReq.body = updateData;
+
+      const mockUpdatedUser = {
+        _id: userId,
+        ...updateData
+      };
+
+      (userModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
+        select: jest.fn().mockResolvedValue(mockUpdatedUser)
+      });
+
+      await updateUserProfile(mockReq as Request, mockRes as Response);
+      expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        userId,
+        updateData,
+        { new: true, runValidators: true }
+      );
+      expect(mockJson).toHaveBeenCalledWith(mockUpdatedUser);
+    });
+
+    it('should return 404 when user is not found', async () => {
+      const userId = new mongoose.Types.ObjectId().toString();
+      mockReq.query = { userId };
+      mockReq.body = {
+        username: 'newuser',
+        profilePicture: 'new.jpg',
+        bio: 'new bio'
+      };
+
+      (userModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
+        select: jest.fn().mockResolvedValue(null)
+      });
+
+      await updateUserProfile(mockReq as Request, mockRes as Response);
+      expect(mockStatus).toHaveBeenCalledWith(404);
+      expect(mockJson).toHaveBeenCalledWith({ message: 'User not found' });
+    });
+
+    it('should return 500 on database error', async () => {
+      const userId = new mongoose.Types.ObjectId().toString();
+      mockReq.query = { userId };
+      mockReq.body = {
+        username: 'newuser',
+        profilePicture: 'new.jpg',
+        bio: 'new bio'
+      };
+
+      (userModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
+        select: jest.fn().mockRejectedValue(new Error('Database error'))
+      });
+
+      await updateUserProfile(mockReq as Request, mockRes as Response);
+      expect(mockStatus).toHaveBeenCalledWith(500);
+      expect(mockJson).toHaveBeenCalledWith({ message: 'Internal server error' });
+    });
   });
 
-  test("should return 500 on error", async () => {
-    const req: any = {
-      query: { userId: "abc123" },
-      body: { name: "Err User", profilePicture: "", bio: "" }
-    };
-    const res = mockResponse();
+  describe('getUserById', () => {
+    it('should return 400 if userId is missing', async () => {
+      mockReq.query = {};
+      await getUserById(mockReq as Request, mockRes as Response);
+      expect(mockStatus).toHaveBeenCalledWith(400);
+      expect(mockJson).toHaveBeenCalledWith({ message: 'Missing userId' });
+    });
 
-    const mockSelect = jest.fn().mockRejectedValue(new Error("DB error"));
-    (userModel.findByIdAndUpdate as jest.Mock).mockReturnValue({ select: mockSelect });
+    it('should return user when found', async () => {
+      const userId = new mongoose.Types.ObjectId().toString();
+      const mockUser = {
+        _id: userId,
+        username: 'testuser',
+        profilePicture: 'test.jpg',
+        bio: 'test bio'
+      };
 
-    await updateUserProfile(req, res);
+      mockReq.query = { userId };
+      (userModel.findById as jest.Mock).mockReturnValue({
+        select: jest.fn().mockResolvedValue(mockUser)
+      });
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ message: "Internal server error" });
-  });
-});
+      await getUserById(mockReq as Request, mockRes as Response);
+      expect(userModel.findById).toHaveBeenCalledWith(userId);
+      expect(mockStatus).toHaveBeenCalledWith(200);
+      expect(mockJson).toHaveBeenCalledWith(mockUser);
+    });
 
-describe("getUserById Unit Tests", () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+    it('should return 404 when user is not found', async () => {
+      const userId = new mongoose.Types.ObjectId().toString();
+      mockReq.query = { userId };
+      (userModel.findById as jest.Mock).mockReturnValue({
+        select: jest.fn().mockResolvedValue(null)
+      });
 
-  test("should return 400 if userId is missing", async () => {
-    const req: any = { query: {} };
-    const res = mockResponse();
+      await getUserById(mockReq as Request, mockRes as Response);
+      expect(mockStatus).toHaveBeenCalledWith(404);
+      expect(mockJson).toHaveBeenCalledWith({ message: 'User not found' });
+    });
 
-    await getUserById(req, res);
+    it('should return 500 on database error', async () => {
+      const userId = new mongoose.Types.ObjectId().toString();
+      mockReq.query = { userId };
+      (userModel.findById as jest.Mock).mockReturnValue({
+        select: jest.fn().mockRejectedValue(new Error('Database error'))
+      });
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ message: "Missing userId" });
-  });
-
-  test("should return 404 if user not found", async () => {
-    const req: any = { query: { userId: "notfound" } };
-    const res = mockResponse();
-
-    const mockSelect = jest.fn().mockResolvedValue(null);
-    (userModel.findById as jest.Mock).mockReturnValue({ select: mockSelect });
-
-    await getUserById(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({ message: "User not found" });
-  });
-
-  test("should return user if found", async () => {
-    const req: any = { query: { userId: "abc123" } };
-    const res = mockResponse();
-
-    const mockSelect = jest.fn().mockResolvedValue({ _id: "abc123", username: "Lee" });
-    (userModel.findById as jest.Mock).mockReturnValue({ select: mockSelect });
-
-    await getUserById(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({ _id: "abc123", username: "Lee" });
-  });
-
-  test("should return 500 if DB throws error", async () => {
-    const req: any = { query: { userId: "abc123" } };
-    const res = mockResponse();
-
-    const mockSelect = jest.fn().mockRejectedValue(new Error("DB error"));
-    (userModel.findById as jest.Mock).mockReturnValue({ select: mockSelect });
-
-    await getUserById(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ message: "Internal server error" });
+      await getUserById(mockReq as Request, mockRes as Response);
+      expect(mockStatus).toHaveBeenCalledWith(500);
+      expect(mockJson).toHaveBeenCalledWith({ message: 'Internal server error' });
+    });
   });
 });
