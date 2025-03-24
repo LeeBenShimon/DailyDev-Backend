@@ -45,7 +45,7 @@ const updateUserProfile = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-// GET user profile by userId (from query param)
+
 const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.query.userId;
