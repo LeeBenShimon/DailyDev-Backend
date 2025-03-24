@@ -1,16 +1,15 @@
 import { Request, Response } from "express";
 import userModel from "../models/user_model";
-import mongoose from "mongoose";
-
-
-
 
 const getUserProfile = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.query.userId;
-        const ObjectId = new mongoose.Types.ObjectId(userId as string);
-        console.log(ObjectId);
-        const user = await userModel.findById(userId) as string;
+        if (!userId) {
+            res.status(400).json({ message: "Missing userId" });
+            return;
+        }
+
+        const user = await userModel.findById(userId).select("-password -refreshToken");
 
         if (!user) {
             res.status(404).json({ message: "User not found" });
@@ -28,6 +27,11 @@ const getUserProfile = async (req: Request, res: Response): Promise<void> => {
 const updateUserProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.query.userId;
+    if (!userId) {
+      res.status(400).json({ message: "Missing userId" });
+      return;
+    }
+
     const { username, profilePicture, bio } = req.body;
 
     const updatedUser = await userModel.findByIdAndUpdate(
