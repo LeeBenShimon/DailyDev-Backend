@@ -41,9 +41,9 @@ const router = express.Router();
  *                 username:
  *                   type: string
  *                   description: The user's username.
- *                 avatar:
+ *                 profilePicture:
  *                   type: string
- *                   description: The user's avatar URL (optional).
+ *                   description: The user's profilePicture URL (optional).
  *                 bio:
  *                   type: string
  *                   description: The user's bio (optional).
@@ -132,7 +132,7 @@ router.get("/getUserById", getUserById);
  *                       type: string
  *                     bio:
  *                       type: string
- *                     avatar:
+ *                     profilePicture:
  *                       type: string
  *       400:
  *         description: Bad request, missing required fields.

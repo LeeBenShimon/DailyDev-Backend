@@ -40,6 +40,7 @@ const router = express.Router();
 *           description: The user password
 *       example:
 *         email: 'bob@gmail.com'
+*         username: 'bob'
 *         password: '123456'
 */
 

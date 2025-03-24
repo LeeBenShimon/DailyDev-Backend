@@ -290,7 +290,7 @@ router.post("/:id/unlike", authMiddleware, postsController.unlike!.bind(postsCon
  *                     type: string
  *                   username:
  *                     type: string
- *                   avatar:
+ *                   profilePicture:
  *                     type: string
  */
 router.get("/:id/likes", authMiddleware, postsController.getLikes!.bind(postsController));
@@ -331,7 +331,7 @@ router.get("/:id/likes", authMiddleware, postsController.getLikes!.bind(postsCon
  *                         type: string
  *                       username:
  *                         type: string
- *                       avatar:
+ *                       profilePicture:
  *                         type: string
  */
 router.get("/:id/comments", authMiddleware, postsController.getComments!.bind(postsController));
