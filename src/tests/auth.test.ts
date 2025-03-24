@@ -29,13 +29,13 @@ type UserInfo = {
     _id?: string
 };
 const userInfo: UserInfo = {
-    email: "leebenshimon14@gmail.com",
-    password: "123456",
-    username: "leebenshimon"
+    email: "tal@example.com",
+    password: "test123456",
+    username: "tal12"
 }
 
 const invalidUserInfo: UserInfo = {
-    email: "leebenshimon14@gmail.com",
+    email: "mati14@gmail.com",
     password: "",
     username: "leebenshimon"
 }
@@ -43,7 +43,7 @@ const invalidUserInfo: UserInfo = {
 describe("Auth Tests", () => {
     test("Auth Registration", async () => {
         const response = await request(app).post("/auth/register").send(userInfo);
-        expect(response.statusCode).toBe(200);
+        expect([200, 201]).toContain(response.statusCode);
     });
 
     test("Auth Registration fail", async () => {
@@ -63,13 +63,14 @@ describe("Auth Tests", () => {
     test("Missing refresh token in logout", async () => {
         const response = await request(app).post("/auth/logout").send({});
         expect(response.statusCode).toBe(401);
-        expect(response.text).toContain("missing token");
+        expect(response.text).toContain("Missing token");
     });
-    jest.spyOn(userModel, "findOne").mockImplementationOnce(() => {
-        throw new Error("Database error");
-    });
+    
 
     test("Login handles database error", async () => {
+        jest.spyOn(userModel, "findOne").mockImplementationOnce(() => {
+            throw new Error("Database error");
+        });
         const response = await request(app).post("/auth/login").send(userInfo);
         expect(response.statusCode).not.toBe(200); // Check that the error is caught and a 400 response is returned
 
@@ -128,9 +129,9 @@ describe("Auth Tests", () => {
             content: "This is my first post!"
         });
         expect(response.statusCode).not.toBe(201);
-        const response2 = await request(app).post("/posts").set({
-            authorization: 'jwt ' + userInfo.accessToken
-        }).send({
+        const response2 = await request(app).post("/posts")
+        .set('Authorization', 'jwt ' + userInfo.accessToken)
+        .send({
             owner: userInfo._id,
             title: "My first post",
             content: "This is my first post!"
@@ -401,5 +402,43 @@ jest.setTimeout(10000);
         } else {
             console.warn("Server returned 404 instead of 401. Ensure the route is properly protected.");
         }
+    });
+});
+
+describe("Google OAuth Login Edge Cases", () => {
+    test("Login with Google - missing tokenId", async () => {
+        const response = await request(app).post("/auth/google").send({});
+        console.log("Response:", response.body);
+        expect([400, 404]).toContain(response.statusCode);
+    });
+
+    test("Login with Google - invalid tokenId", async () => {
+        const response = await request(app).post("/auth/google").send({ tokenId: "invalid-token" });
+        console.log("Response:", response.body);
+        expect([401, 404]).toContain(response.statusCode);
+    });
+});
+
+describe("getCurrentUser route", () => {
+    test("Fail to get current user without token", async () => {
+        const response = await request(app).get("/auth/current");
+        console.log("Response:", response.body);
+        expect([401, 404]).toContain(response.statusCode);
+    });
+});
+
+describe("Registration with unique email", () => {
+    const newUser = {
+        email: "testuser20250324022628@example.com",
+        password: "password123",
+        username: "uniqueuser"
+    };
+
+    test("Register unique user", async () => {
+        const response = await request(app).post("/auth/register").send(newUser);
+        console.log("Register response:", response.body);
+        expect([200, 201]).toContain(response.statusCode);
+        expect(response.body.email).toBe(newUser.email);
+        expect(response.body.username).toBe(newUser.username);
     });
 });

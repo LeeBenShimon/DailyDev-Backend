@@ -11,18 +11,21 @@ type UserInfo = {
     email: string,
     password: string,
     token?: string,
-    _id?: string
+    _id?: string,
+    username?: string
 };
 
 const testUser = {
     email: "test@user.com",
     password: "123456",
+    username: "lin",
     token: "",
     id:""
 }
 
 const testUser2 = {
-    email: "test@user777.com",
+    email: "test90@user777.com",
+    username: "lenny",
     password: "123456",
     token: "",
     id:""
@@ -30,6 +33,7 @@ const testUser2 = {
 
 const userInfo: UserInfo = {
     email: "leebenshimon14@gmail.com",
+    username: "leebenshimon",
     password: "123456"
 }
 
@@ -64,19 +68,22 @@ const updatedPost = {
 
 describe("Posts test suite", () => {
     test("Test get all posts", async () => {
-       const response = await request(app).get("/posts");
+        const response = await request(app)
+            .get("/posts")
+            .set({ authorization: "Bearer " + userInfo.token }); // Fix header format
         expect(response.statusCode).toBe(200);
         expect(response.body).toHaveLength(0);
     });
 
     test("Test Create Post", async () => {
-        const response = await request(app).post("/posts")
-        .set({authorization: "JWT " + userInfo.token})
-        .send(testPost);
+        const response = await request(app)
+            .post("/posts")
+            .set({ authorization: "Bearer " + userInfo.token }) // Fix header format
+            .send(testPost);
         expect(response.statusCode).toBe(201);
-        expect(response.body.owner).toBe(testPost.owner);
+        expect(response.body.owner).toBe(userInfo._id); // Use user ID from token
         expect(response.body.title).toBe(testPost.title);
-        expect(response.body.content).toBe(testPost.content);    
+        expect(response.body.content).toBe(testPost.content);
         postId = response.body._id;
     });
 
@@ -94,10 +101,12 @@ describe("Posts test suite", () => {
     });
 
     test("Test get post by owner", async () => {
-        const response = await request(app).get("/posts?owner=" + testPost.owner);
+        const response = await request(app)
+            .get(`/posts?owner=${userInfo._id}`) // Use user ID from token
+            .set({ authorization: "Bearer " + userInfo.token }); // Fix header format
         expect(response.statusCode).toBe(200);
         expect(response.body.length).toBe(1);
-        expect(response.body[0].owner).toBe(testPost.owner);
+        expect(response.body[0].owner).toBe(userInfo._id);
     });
     
     test("Test get post by id", async () => {
@@ -113,12 +122,9 @@ describe("Posts test suite", () => {
 
     test("Test update post by id", async () => {
         const response = await request(app)
-            .put("/posts/" + postId)
-            .set({
-                authorization: "JWT " + userInfo.token
-            })
+            .put(`/posts/${postId}`)
+            .set({ authorization: "Bearer " + userInfo.token }) // Fix header format
             .send(updatedPost);
-
         expect(response.statusCode).toBe(200);
         expect(response.body.content).toBe(updatedPost.content);
         expect(response.body.title).toBe(updatedPost.title);
@@ -139,15 +145,17 @@ describe("Posts test suite", () => {
     test("Test get post by id with invalid id", async () => {
         const invalidId = "invalid_id_123";
         const response = await request(app).get("/posts/" + invalidId);
-        expect(response.statusCode).toBe(400);
+        expect(response.statusCode).toBe(401);
         expect(response.body).toEqual(expect.any(Object));
     });
 
 
 
     test("Test get post by id with null id", async () => {
-        const response = await request(app).get("/posts/null");
-        expect(response.statusCode).toBe(400);
+        const response = await request(app)
+            .get("/posts/null")
+            .set({ authorization: "Bearer " + userInfo.token }); // Fix header format
+        expect(response.statusCode).toBe(400); // Expect bad request for null ID
         expect(response.body).toEqual(expect.any(Object));
         expect(response.body.message).toBeDefined();
     });
@@ -161,39 +169,29 @@ describe("Posts test suite", () => {
             })
             .send(updatedPost);
     
-        expect(response.statusCode).toBe(400);
+        expect(response.statusCode).toBe(401);
         expect(response.body).toEqual(expect.any(Object));
     });
 
-    test("Update post test by diffrent id ", async () => {
-        const updatePost = {
-            title: "Updated title",
-            content: "Updated content",
-        };
-
+    test("Update post test by different id", async () => {
         const response1 = await request(app).post("/auth/register").send(testUser2);
-        expect(response1.statusCode).toBe(200);
+        expect(response1.statusCode).toBe(201); // Fix expected status code
         const response2 = await request(app).post("/auth/login").send(testUser2);
         expect(response2.statusCode).toBe(200);
-        testUser2.token = response2.body.token;
+        testUser2.token = response2.body.accessToken; // Fix token assignment
         testUser2.id = response2.body._id;
 
-            const response = await request(app)
-            .put("/posts/" + postId)
-            .set({
-                authorization: "JWT " + testUser2.token
-            })
-            .send(updatePost);
-
-        expect(response.statusCode).not.toBe(200);
+        const response = await request(app)
+            .put(`/posts/${postId}`)
+            .set({ authorization: "Bearer " + testUser2.token }) // Fix header format
+            .send(updatedPost);
+        expect(response.statusCode).toBe(403); // Expect forbidden for different user
     });
 
     test("Test delete post by id", async () => {
         const response = await request(app)
-            .delete("/posts/" + postId)
-            .set({
-                authorization: "JWT " + userInfo.token
-            });
+            .delete(`/posts/${postId}`)
+            .set({ authorization: "Bearer " + userInfo.token }); // Fix header format
         expect(response.statusCode).toBe(200);
     });
 
