@@ -1,6 +1,9 @@
 import mongoose from "mongoose"; // Import mongoose
 import postsModel, { IPost } from "../models/posts_model";
 import createController from "./base_controller";
+import { writeFileSync } from "fs";
+// import path from "path";
+
 
 const postsController = createController<IPost>(postsModel);
 
@@ -68,6 +71,35 @@ postsController.getComments = async (req, res) => {
         res.status(200).json(comments);
     } catch (error) {
         console.error("Error fetching comments:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+postsController.create = async (req, res) => {
+    try{
+        let filename = Date.now().toString();
+        let imageFile: Express.Multer.File | undefined = undefined;
+
+        if (req.files && "image" in req.files) {
+            imageFile = req.files["image"][0] as Express.Multer.File;
+            filename = `${filename}.${imageFile.mimetype.split("/")[1]}`
+
+            await writeFileSync(`./storage/${filename}`, imageFile.buffer);
+        }
+
+        const doc = new postsModel(req.body);
+
+        if(imageFile) {
+            doc.image = filename;
+        }
+        
+        doc.owner = new mongoose.Types.ObjectId(req.query.userId as string);
+        await doc.save();
+
+        res.status(201).json(doc);
+    }
+    catch (error) {
+        console.error("Error creating post:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };

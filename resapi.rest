@@ -3,7 +3,7 @@
 @password = test123456
 @username = tal12
 @googleCredential = YOUR_GOOGLE_ID_TOKEN
-@useridid = 67dc95819bd58a939ef50e65
+@useridid = 67e04c93c04c2fd893583d9e
 
 ### 1️⃣ Register a New User
 # @name registerUser
@@ -124,20 +124,20 @@ Authorization: Bearer {{newAccessToken}}
 
 ### 1️⃣2️⃣ Test User Profile - Fetch Profile 
 # @name fetchUserProfile 
-GET {{baseUrl}}/user/profile
+GET {{baseUrl}}/user
 Authorization: Bearer {{newAccessToken}}
 
 
 
 ### 1️⃣3️⃣ Test User Profile - Update Profile 
 # @name updateUserProfile 
-PUT {{baseUrl}}/user/profile
+PUT {{baseUrl}}/user
 Content-Type: application/json 
 Authorization: Bearer {{newAccessToken}}
 
 {
     "name": "Updated Name",
-    "avatar": "https://example.com/avatar.jpg",
+    "profilePicture": "https://example.com/avatar.jpg",
     "bio": "Updated Bio"
 }
 
@@ -191,3 +191,12 @@ Cookie: accessToken={{refreshTokens.response.body.cookies.accessToken}}
 POST {{baseUrl}}/auth/logout
 Cookie: accessToken={{loginUser.response.body.accessToken}}
 
+
+
+
+### checking get user by id noa new function
+
+### Get User by ID
+# @name getUserById
+GET {{baseUrl}}/user/getUserById?userId={{useridid}}
+Authorization: Bearer {{newAccessToken}}

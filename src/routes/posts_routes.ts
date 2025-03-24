@@ -1,6 +1,7 @@
 import express from 'express';
 import { authMiddleware } from '../controllers/auth_controller';
 import postsController from '../controllers/posts_controller';
+import multer from 'multer';
 const router = express.Router();
 
 /**
@@ -124,7 +125,7 @@ router.get("/:id", authMiddleware, postsController.get.bind(postsController));
 *                           description: the post id
 *                           example: "60f3b4b3b3b3b3b3b3"
 */
-router.post("/", authMiddleware, postsController.create.bind(postsController));
+router.post("/", authMiddleware, multer({ storage: multer.memoryStorage() }).fields([ { name: "image", maxCount: 1 } ]), postsController.create.bind(postsController));
 
 
 /**
