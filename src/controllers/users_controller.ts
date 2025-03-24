@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import userModel from "../models/user_model";
+import mongoose from "mongoose";
 
 
 
@@ -7,6 +8,8 @@ import userModel from "../models/user_model";
 const getUserProfile = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.query.userId;
+        const ObjectId = new mongoose.Types.ObjectId(userId as string);
+        console.log(ObjectId);
         const user = await userModel.findById(userId) as string;
 
         if (!user) {
@@ -25,11 +28,11 @@ const getUserProfile = async (req: Request, res: Response): Promise<void> => {
 const updateUserProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.query.userId;
-    const { name, profilePicture, bio } = req.body;
+    const { username, profilePicture, bio } = req.body;
 
     const updatedUser = await userModel.findByIdAndUpdate(
       userId,
-      { name, profilePicture, bio },
+      { username, profilePicture, bio },
       { new: true, runValidators: true }
     ).select("-password -refreshToken");
 
