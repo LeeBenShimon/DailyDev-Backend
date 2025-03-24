@@ -49,7 +49,7 @@ postsController.unlike = async (req, res) => {
 
 postsController.getLikes = async (req, res) => {
     try {
-        const post = await postsModel.findById(req.params.id).populate("likes", "username avatar");
+        const post = await postsModel.findById(req.params.id).populate("likes", "username profilePicture"); // Corrected field name
         if (!post) {
             res.status(404).json({ message: "Post not found" });
             return;
@@ -65,7 +65,7 @@ postsController.getLikes = async (req, res) => {
 postsController.getComments = async (req, res) => {
     try {
         const comments = await import("../models/comments_model").then(({ default: commentsModel }) =>
-            commentsModel.find({ postId: req.params.id }).populate("owner", "username avatar")
+            commentsModel.find({ postId: req.params.id }).populate("owner", "username profilePicture")
         );
 
         res.status(200).json(comments);
