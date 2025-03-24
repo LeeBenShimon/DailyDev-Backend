@@ -24,6 +24,7 @@
   "homepage": "https://github.com/LeeBenShimon/test-app#readme",
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
+    "axios": "^1.8.4",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "cookie-parser": "^1.4.7",
@@ -43,6 +44,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
+    "@types/axios": "^0.14.4",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",

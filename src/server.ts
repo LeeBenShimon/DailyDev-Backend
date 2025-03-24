@@ -65,9 +65,8 @@ async function initApp(): Promise<Express> {
     app.use("/comments", commentsRoutes);
     app.use("/auth", authRoutes);
     app.use("/files", fileRoutes);
-    app.use("/user", usersRoutes); // Register all user-related routes under "/user"
-
-    app.use("/api/ai", aiRoutes);
+    app.use("/user", usersRoutes); 
+    app.use("/api", aiRoutes);
 
     const publicPath = path.join(__dirname, "../public");
     app.use(express.static(publicPath));
