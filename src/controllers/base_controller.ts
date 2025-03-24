@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from "express";
 import { Model, Document, FilterQuery } from "mongoose";
 
@@ -39,7 +40,7 @@ class BaseController<T extends Document> {
 
       const data = await this.model
         .find(filter)
-        .populate("owner", "username avatar"); // ✅ מושך את שם ותמונת הפרופיל של מי שפרסם
+        .populate("owner", "username profilePicture"); 
 
       res.status(200).json(data);
     } catch (error) {
