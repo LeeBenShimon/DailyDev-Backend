@@ -16,6 +16,7 @@ import aiRoutes from "./routes/ai_routes";
 import searchRoutes from "./routes/search_routes";
 import cors from "cors";
 import path from "path";
+import messageRoutes from "./routes/message_routes";
 
 dotenv.config();
 
@@ -29,8 +30,7 @@ app.use(
       "http://localhost:3000",
       "http://localhost:5173",
       "https://node67.cs.colman.ac.il",
-      "http://10.10.246.67"
-
+      "http://10.10.246.67",
     ],
     credentials: true,
   })
@@ -40,19 +40,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-
 // API Routes
 app.use("/posts", postsRoutes);
 app.use("/comments", commentsRoutes);
 app.use("/auth", authRoutes);
 app.use("/files", fileRoutes);
-app.use("/user", usersRoutes); 
+app.use("/user", usersRoutes);
 app.use("/api", aiRoutes);
 app.use("/search", searchRoutes);
 
 const publicPath = path.join(__dirname, "../public");
 app.use(express.static(publicPath));
-
 
 const httpsOptions = {
   key: fs.readFileSync("client-key.pem"),
@@ -71,7 +69,8 @@ const options = {
     servers: [
       { url: `http://localhost:${process.env.PORT || 3000}` },
       { url: "http://10.10.246.67" },
-      { url: "https://https://node67.cs.colman.ac.il" },],
+      { url: "https://https://node67.cs.colman.ac.il" },
+    ],
   },
   apis: ["./src/routes/*.ts"],
 };
@@ -87,21 +86,19 @@ async function initApp(): Promise<Express> {
   if (!process.env.DB_CONNECT) {
     throw new Error(" DB_CONNECT is not set");
   }
-  if(process.env.NODE_ENV !== "production") {
-    console.log('development');
+  if (process.env.NODE_ENV !== "production") {
+    console.log("development");
     http.createServer(app).listen(process.env.port);
   } else {
     const port = process.env.PORT || 3000;
     https.createServer(httpsOptions, app).listen(port, () => {
-        console.log(` Server running on **HTTPS** port ${port}`);
+      console.log(` Server running on **HTTPS** port ${port}`);
     });
   }
 
   try {
     await mongoose.connect(process.env.DB_CONNECT);
     console.log(" Connected to MongoDB");
-
-    
 
     return app;
   } catch (error) {

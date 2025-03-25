@@ -40,6 +40,8 @@
     "mongoose": "^8.8.3",
     "multer": "^1.4.5-lts.1",
     "node-openssl-cert": "^0.1.43",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "ssl": "^1.0.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",

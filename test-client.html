@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Socket.IO Test</title>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  </head>
+  <body>
+    <h1>Socket.IO Test</h1>
+    <button onclick="sendMessage()">Send Test Message</button>
+
+    <script>
+      const socket = io("http://localhost:3000"); // שימי את הכתובת של השרת שלך
+
+      socket.on("connect", () => {
+        console.log("✅ Connected to socket:", socket.id);
+        socket.emit("joinRoom", { roomId: "test-room" });
+      });
+
+      function sendMessage() {
+        socket.emit("sendMessage", {
+          roomId: "test-room",
+          message: "Hello from the client!",
+        });
+      }
+
+      socket.on("receiveMessage", (msg) => {
+        console.log("📨 Received:", msg);
+      });
+    </script>
+  </body>
+</html>
