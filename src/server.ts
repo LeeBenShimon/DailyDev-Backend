@@ -18,6 +18,17 @@ dotenv.config();
 
 const app = express();
 
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5174",
+      "http://localhost:3000",
+      "http://localhost:5173",
+    ],
+    credentials: true,
+  })
+);
+
 // Swagger Configuration
 const options = {
   definition: {
@@ -50,16 +61,7 @@ async function initApp(): Promise<Express> {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(cookieParser());
-    app.use(
-      cors({
-        origin: [
-          "http://localhost:5174",
-          "http://localhost:3000",
-          "http://localhost:5173",
-        ],
-        credentials: true,
-      })
-    );
+    
 
     // API Routes
     app.use("/posts", postsRoutes);

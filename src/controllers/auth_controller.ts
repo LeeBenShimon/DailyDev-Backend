@@ -67,10 +67,11 @@ const googleSignIn: RequestHandler = async (req, res) => {
             }
 
             res.status(200).send({
-                email: user.email,
-                _id: user._id,
-                username: user.username, // Include username in response
-                // imgUrl: user.imgUrl, // Include imgUrl in response
+                user: {
+                  _id: user._id,
+                  email: user.email,
+                  username: user.username,
+                },
                 accessToken: tokens.accessToken,
                 refreshToken: tokens.refreshToken
             });
