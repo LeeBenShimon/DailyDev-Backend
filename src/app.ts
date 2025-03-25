@@ -12,14 +12,6 @@ initApp()
   .then((app) => {
     const server = http.createServer(app);
 
-<<<<<<< HEAD
-app.use(express.static('public'));
-
-
-initApp().catch((error) => {
-    console.error("Failed to initialize app:", error);
-});
-=======
     const io = new Server(server, {
       cors: {
         origin: "*",
@@ -36,4 +28,3 @@ initApp().catch((error) => {
   .catch((error) => {
     console.error("❌ Failed to initialize app:", error);
   });
->>>>>>> 6a94522 (saving my change before pulling)

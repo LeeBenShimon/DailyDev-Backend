@@ -48,6 +48,7 @@ app.use("/files", fileRoutes);
 app.use("/user", usersRoutes);
 app.use("/api", aiRoutes);
 app.use("/search", searchRoutes);
+app.use("/api/messages", messageRoutes);
 
 const publicPath = path.join(__dirname, "../public");
 app.use(express.static(publicPath));

@@ -17,7 +17,7 @@ const socketHandler = (io: Server) => {
     // Join room
     socket.on("joinRoom", (payload: JoinRoomPayload) => {
       socket.join(payload.roomId);
-      console.log("🛏 User ${socket.id} joined room: ${payload.roomId}");
+      console.log(`🛏 User ${socket.id} joined room: ${payload.roomId}`);
     });
 
     // Send message
