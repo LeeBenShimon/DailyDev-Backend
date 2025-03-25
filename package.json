@@ -4,13 +4,15 @@
   "description": "this is task 1",
   "main": "app.js",
   "scripts": {
-    "dev": "copy .env_dev .env && nodemon ./src/app.ts",
-    "start": "copy .env_dev .env && tsc && node ./dist/src/app.js",
-    "test": "copy .env_test .env && tsc && jest --detectOpenHandles --forceExit --runInBand --coverage",
-    "testAuth": "copy .env_test .env && tsc && jest --detectOpenHandles --forceExit auth.test.ts --runInBand",
-    "testPost": "copy .env_test .env && tsc && jest --detectOpenHandles --forceExit posts.test.ts --runInBand",
-    "testComment": "copy .env_test .env && tsc && jest --detectOpenHandles --forceExit comments.test.ts",
-    "testUser": "copy .env_test .env && tsc && jest --detectOpenHandles --forceExit user.test.ts",
+    "deploy": "cp .env_prod .env && tsc && cp -r src/prompts dist/src && pm2 restart ecosystem.config.js --env production",
+    "prod": "cp .env_prod .env && tsc -p tsconfig_prod.json && cp -r src/prompts dist/src && node ./dist/src/app.js",
+    "dev": "cp .env_dev .env && nodemon ./src/app.ts",
+    "start": "cp .env_dev .env && tsc && node ./dist/src/app.js",
+    "test": "cp .env_test .env && tsc && jest --detectOpenHandles --forceExit --runInBand --coverage",
+    "testAuth": "cp .env_test .env && tsc && jest --detectOpenHandles --forceExit auth.test.ts --runInBand",
+    "testPost": "cp .env_test .env && tsc && jest --detectOpenHandles --forceExit posts.test.ts --runInBand",
+    "testComment": "cp .env_test .env && tsc && jest --detectOpenHandles --forceExit comments.test.ts",
+    "testUser": "cp .env_test .env && tsc && jest --detectOpenHandles --forceExit user.test.ts",
     "lint": "eslint . --ext .ts"
   },
   "repository": {

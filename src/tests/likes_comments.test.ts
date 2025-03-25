@@ -18,11 +18,14 @@ const testUser = {
 
 const testPost = {
     title: "Test Post",
-    content: "This is a test post."
+    content: "This is a test post.",
+    owner: "" // Will be set after user creation
 };
 
 const testComment = {
-    comment: "This is a test comment."
+    comment: "This is a test comment.",
+    postId: "", // Will be set after post creation
+    owner: "" // Will be set after user creation
 };
 
 let postId = "";
@@ -35,26 +38,38 @@ beforeAll(async () => {
     await commentsModel.deleteMany();
 
     // Register and login the test user
-    await request(app).post("/auth/register").send(testUser);
-    const loginResponse = await request(app).post("/auth/login").send({
-        email: testUser.email,
-        password: testUser.password
-    });
+    const registerResponse = await request(app)
+        .post("/auth/register")
+        .send(testUser);
+    expect(registerResponse.statusCode).toBe(201);
+    
+    const loginResponse = await request(app)
+        .post("/auth/login")
+        .send({
+            email: testUser.email,
+            password: testUser.password
+        });
+    expect(loginResponse.statusCode).toBe(200);
     testUser.token = loginResponse.body.accessToken;
     testUser.id = loginResponse.body._id;
+    testPost.owner = testUser.id;
+    testComment.owner = testUser.id;
 
     // Create a test post
     const postResponse = await request(app)
         .post("/posts")
         .set("Authorization", `Bearer ${testUser.token}`)
         .send(testPost);
+    expect(postResponse.statusCode).toBe(201);
     postId = postResponse.body._id;
+    testComment.postId = postId;
 
     // Add a test comment
     const commentResponse = await request(app)
         .post("/comments")
         .set("Authorization", `Bearer ${testUser.token}`)
-        .send({ ...testComment, postId });
+        .send(testComment);
+    expect(commentResponse.statusCode).toBe(201);
     commentId = commentResponse.body._id;
 });
 
@@ -66,7 +81,8 @@ describe("Likes and Comments API Tests", () => {
     test("Like a post", async () => {
         const response = await request(app)
             .post(`/posts/${postId}/like`)
-            .set("Authorization", `Bearer ${testUser.token}`);
+            .set("Authorization", `Bearer ${testUser.token}`)
+            .send({ userId: testUser.id });
         expect(response.statusCode).toBe(200);
         expect(response.body.message).toBe("Post liked successfully");
 
@@ -79,7 +95,8 @@ describe("Likes and Comments API Tests", () => {
     test("Unlike a post", async () => {
         const response = await request(app)
             .post(`/posts/${postId}/unlike`)
-            .set("Authorization", `Bearer ${testUser.token}`);
+            .set("Authorization", `Bearer ${testUser.token}`)
+            .send({ userId: testUser.id });
         expect(response.statusCode).toBe(200);
         expect(response.body.message).toBe("Post unliked successfully");
 
@@ -92,7 +109,8 @@ describe("Likes and Comments API Tests", () => {
         // Like the post again
         await request(app)
             .post(`/posts/${postId}/like`)
-            .set("Authorization", `Bearer ${testUser.token}`);
+            .set("Authorization", `Bearer ${testUser.token}`)
+            .send({ userId: testUser.id });
 
         const response = await request(app)
             .get(`/posts/${postId}/likes`)

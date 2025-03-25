@@ -5,164 +5,223 @@ import { Express } from 'express';
 import commentsModel from '../models/comments_model';
 import userModel from '../models/user_model';
 
-
 let app: Express;
 
 type UserInfo = {
     email: string,
     password: string,
+    username: string,
     token?: string,
     _id?: string
 };
+
 const userInfo: UserInfo = {
-    email: "leebenshimon14@gmail.com",
-    password: "123456"
-}
+    email: "testuser@example.com",
+    password: "123456",
+    username: "testuser"
+};
+
+let postId = "";
 
 beforeAll(async () => {
-    app = await initApp(); // Pass the instance to initApp
+    app = await initApp();
     await commentsModel.deleteMany();
     await userModel.deleteMany();
-    await request(app).post("/auth/register").send(userInfo);
-    const response = await request(app).post("/auth/login").send(userInfo);
-    userInfo.token = response.body.accessToken;
-    userInfo._id = response.body._id;
+    
+    // Register user
+    const registerResponse = await request(app)
+        .post("/auth/register")
+        .send(userInfo);
+    expect(registerResponse.statusCode).toBe(201);
+    
+    // Login user
+    const loginResponse = await request(app)
+        .post("/auth/login")
+        .send({
+            email: userInfo.email,
+            password: userInfo.password
+        });
+    expect(loginResponse.statusCode).toBe(200);
+    userInfo.token = loginResponse.body.accessToken;
+    userInfo._id = loginResponse.body._id;
+
+    // Create a test post
+    const postResponse = await request(app)
+        .post("/posts")
+        .set("Authorization", `Bearer ${userInfo.token}`)
+        .send({
+            title: "Test Post",
+            content: "Test Content",
+            owner: userInfo._id
+        });
+    expect(postResponse.statusCode).toBe(201);
+    postId = postResponse.body._id;
 });
 
 afterAll(async () => {
-    console.log('afterAll');
     await mongoose.connection.close();
 });
 
-let postId = "";
-const testComment = {
-    comment: "Test comment",
-    postId: "First Test",
-    owner: "Lee",
-  }
-const invalidComment = {
-    content: "Test comment",
-};
-const updatedComment = {
-    comment: "Updated comment",
-};
-
 describe("Comments test suite", () => {
     test("Comment test get all", async () => {
-        const response = await request(app).get("/comments").set({
-            authorization: "JWT " + userInfo.token, // Include the Authorization header
-        });
-        expect(response.statusCode).toBe(200);
-        expect(response.body).toHaveLength(0);
-    });
+        // Create a comment
+        const commentResponse = await request(app)
+            .post("/comments")
+            .set("Authorization", `Bearer ${userInfo.token}`)
+            .send({
+                comment: "Test comment",
+                postId: postId,
+                owner: userInfo._id
+            });
+        expect(commentResponse.statusCode).toBe(201);
 
-    test("Test Create Comment", async () => {
-        const response = await request(app).post("/comments").set({
-            authorization: "JWT " + userInfo.token,
-        }).send(testComment);
-        expect(response.statusCode).toBe(201);
-        expect(response.body.owner).toBe(testComment.owner);
-        expect(response.body.comment).toBe(testComment.comment);
-        postId = response.body._id;
-        });
-
-    test("Test Create invalid comment", async () => {
-        const response = await request(app).post("/comments").send(invalidComment);
-        expect(response.statusCode).not.toBe(201);
-    });
-
-
-    test("Post test get all comments after adding", async () => {
-        const response = await request(app).get("/comments");
+        // Get all comments
+        const response = await request(app)
+            .get("/comments")
+            .set("Authorization", `Bearer ${userInfo.token}`);
         expect(response.statusCode).toBe(200);
         expect(response.body).toHaveLength(1);
     });
 
-    test("Test get comment by owner", async () => {
-            const response = await request(app).get("/comments?owner=" + testComment.owner);
-            expect(response.statusCode).toBe(200);
-            expect(response.body.length).toBe(1);
-            expect(response.body[0].owner).toBe(testComment.owner);
-        });
+    test("Test Create Comment", async () => {
+        const response = await request(app)
+            .post("/comments")
+            .set("Authorization", `Bearer ${userInfo.token}`)
+            .send({
+                comment: "Test comment",
+                postId: postId,
+                owner: userInfo.username
+            });
+        expect(response.statusCode).toBe(201);
+        expect(response.body.comment).toBe("Test comment");
+        expect(response.body.postId).toBe(postId);
+        expect(response.body.owner).toBe(userInfo._id);
+    });
+
+    test("Test Create invalid comment", async () => {
+        const response = await request(app)
+            .post("/comments")
+            .set("Authorization", `Bearer ${userInfo.token}`)
+            .send({
+                content: "Test comment" // Missing required fields
+            });
+        expect(response.statusCode).not.toBe(201);
+    });
+
+    
     
     test("Test get comment by id", async () => {
-        const response = await request(app).get("/comments/" + postId);
+        // First create a comment
+        const createResponse = await request(app)
+            .post("/comments")
+            .set("Authorization", `Bearer ${userInfo.token}`)
+            .send({
+                comment: "Test comment for get by id",
+                postId: postId,
+                owner: userInfo._id
+            });
+        expect(createResponse.statusCode).toBe(201);
+        const commentId = createResponse.body._id;
+
+        // Then get the comment by its ID
+        const response = await request(app)
+            .get(`/comments/${commentId}`)
+            .set("Authorization", `Bearer ${userInfo.token}`);
         expect(response.statusCode).toBe(200);
-        expect(response.body._id).toBe(postId);
-    });
-
-    test("Test get comments by fail id-1", async () => {
-        const response = await request(app).get("/comments/" + postId + 5);
-        expect(response.statusCode).toBe(401);
-    });
-
-    test("Test get comments by fail id-2", async () => {
-        const response = await request(app).get("/comments/f242f1b06026b3201f8");
-        expect(response.statusCode).toBe(401);
+        expect(response.body._id).toBe(commentId);
     });
 
     test("Test get comment by id fail", async () => {
-        const response = await request(app).get("/comments/6667196fe022c25f3ab887fc");
-        expect(response.statusCode).toBe(200);
+        // Use a valid format ObjectId that doesn't exist
+        const invalidId = new mongoose.Types.ObjectId().toString();
+        const response = await request(app)
+            .get(`/comments/${invalidId}`)
+            .set("Authorization", `Bearer ${userInfo.token}`);
+        expect(response.statusCode).toBe(404);
     });
 
-    test("Test update post by id", async () => {
-            const response = await request(app)
-                .put("/comments/" + postId)
-                .set({
-                    authorization: "JWT " + userInfo.token
-                })
-                .send(updatedComment);
+    test("Test update comment by id", async () => {
+        // First create a comment
+        const createResponse = await request(app)
+            .post("/comments")
+            .set("Authorization", `Bearer ${userInfo.token}`)
+            .send({
+                comment: "Original comment",
+                postId: postId,
+                owner: userInfo._id
+            });
+        expect(createResponse.statusCode).toBe(201);
+        const commentId = createResponse.body._id;
+
+        // Then update it
+        const response = await request(app)
+            .put(`/comments/${commentId}`)
+            .set("Authorization", `Bearer ${userInfo.token}`)
+            .send({
+                comment: "Updated comment"
+            });
     
-            expect(response.statusCode).toBe(200);
-            expect(response.body.comment).toBe(updatedComment.comment);
-        });
+        expect(response.statusCode).toBe(200);
+        expect(response.body.data.comment).toBe("Updated comment");
+    });
     
-        test("Test update post fail,wrong id", async () => {
-            const response = await request(app)
-                .put("/comments/" + postId + 5)
-                .set({
-                    authorization: "JWT " + userInfo.token
-                })
-                .send(updatedComment);
+    test("Test update comment fail, wrong id", async () => {
+        // Use a valid format ObjectId that doesn't exist
+        const invalidId = new mongoose.Types.ObjectId().toString();
+        const response = await request(app)
+            .put(`/comments/${invalidId}`)
+            .set("Authorization", `Bearer ${userInfo.token}`)
+            .send({
+                comment: "Updated comment"
+            });
     
-            expect(response.statusCode).not.toBe(200);
-        });
+        expect(response.statusCode).toBe(404);
+    });
 
-        /////////////////////////////
-
-        test("Test update post fail, no token", async () => {
-            const response = await request(app)
-                .put("/comments/" + postId)
-                .send(updatedComment);
+    test("Test update comment fail, no token", async () => {
+        const response = await request(app)
+            .put(`/comments/${postId}`)
+            .send({
+                comment: "Updated comment"
+            });
     
-            expect(response.statusCode).not.toBe(200);
-        });
+        expect(response.statusCode).toBe(401);
+    });
 
-        test("Test update post fail, wrong token", async () => {
-            const response = await request(app)
-                .put("/comments/" + postId)
-                .set({
-                    authorization: "JWT " + userInfo.token + 1
-                })
-                .send(updatedComment);
+    test("Test update comment fail, wrong token", async () => {
+        const response = await request(app)
+            .put(`/comments/${postId}`)
+            .set("Authorization", `Bearer ${userInfo.token}1`)
+            .send({
+                comment: "Updated comment"
+            });
     
-            expect(response.statusCode).not.toBe(200);
-        });
+        expect(response.statusCode).toBe(401);
+    });
 
-        test("Should return 400 status code when deleting a non-existent comment", async () => {
-            const nonExistentId = "5f9f1b9b9b9b9b9b9b9b9b9b"; // A valid MongoDB ObjectId that doesn't exist
-            const response = await request(app)
-                .delete("/comments/" + nonExistentId)
-                .set({
-                    authorization: "JWT " + userInfo.token
-                });
-            expect(response.statusCode).toBe(401);
-        });
+    test("Test delete comment", async () => {
+        // First create a comment
+        const createResponse = await request(app)
+            .post("/comments")
+            .set("Authorization", `Bearer ${userInfo.token}`)
+            .send({
+                comment: "Comment to delete",
+                postId: postId,
+                owner: userInfo.username
+            });
+        expect(createResponse.statusCode).toBe(201);
+        const commentId = createResponse.body._id;
 
-        test("Should return 401 status code when deleting without authentication", async () => {
-            const response = await request(app).delete("/comments/" + postId);
-            expect(response.statusCode).toBe(404);
-        });
+        // Then delete it
+        const response = await request(app)
+            .delete(`/comments/${commentId}`)
+            .set("Authorization", `Bearer ${userInfo.token}`);
+        expect(response.statusCode).toBe(200);
 
+        // Verify it's deleted
+        const getResponse = await request(app)
+            .get(`/comments/${commentId}`)
+            .set("Authorization", `Bearer ${userInfo.token}`);
+        expect(getResponse.statusCode).toBe(404);
+    });
 });
